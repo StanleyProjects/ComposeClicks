@@ -31,6 +31,7 @@ android {
     defaultConfig {
         minSdk = Version.Android.minSdk
         manifestPlaceholders["appName"] = "@string/app_name"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     productFlavors {
@@ -82,4 +83,6 @@ android {
 
 dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
+    "${android.testBuildType}Implementation"("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
 }
