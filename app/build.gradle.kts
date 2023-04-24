@@ -8,7 +8,7 @@ plugins {
     id("kotlin-android")
 }
 
-val appId = "sp.ax.clicks.sample"
+val appId = "sp.sample.clicks"
 
 android {
     namespace = appId

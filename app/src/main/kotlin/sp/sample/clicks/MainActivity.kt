@@ -1,4 +1,4 @@
-package sp.ax.clicks.sample
+package sp.sample.clicks
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
