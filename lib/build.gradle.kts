@@ -37,7 +37,6 @@ android {
     defaultConfig {
         minSdk = Version.Android.minSdk
         manifestPlaceholders["appName"] = "@string/app_name"
-//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     productFlavors {
