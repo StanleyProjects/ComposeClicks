@@ -1,6 +1,7 @@
 object Version {
     const val jvmTarget = "11"
     const val kotlin = "1.7.10"
+    const val ktlint = "0.49.0"
 
     object Android {
         const val compileSdk = 33
