@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import sp.ax.clicks.clicks
+import sp.ax.jc.clicks.clicks
 
 internal class MainActivity : AppCompatActivity() {
     override fun onCreate(inState: Bundle?) {

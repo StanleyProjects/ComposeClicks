@@ -1,4 +1,4 @@
-package sp.ax.clicks
+package sp.ax.jc.clicks
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication

@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "sp.ax.clicks"
+    namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
 
     defaultConfig {
