@@ -14,17 +14,9 @@ android {
 
     defaultConfig {
         minSdk = Version.Android.minSdk
-//        targetSdk = Version.Android.targetSdk
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
-//    buildTypes {
-//        getByName("debug") {
-//            isMinifyEnabled = false
-//            isShrinkResources = false
-//            manifestPlaceholders["buildType"] = name
-//        }
-//    }
     productFlavors {
         mapOf("version" to setOf("snapshot")).forEach { (dimension, flavors) ->
             flavorDimensions += dimension
@@ -44,7 +36,6 @@ android {
         val variant = this
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
-        check(variant.flavorName in setOf("snapshot"))
         val versionName = when (variant.buildType.name) {
             "release" -> "${Version.Application.name}-${variant.flavorName}"
             else -> "${Version.Application.name}-${variant.name}"
@@ -61,9 +52,6 @@ android {
     }
 }
 
-//dependencies {
-//    implementation("androidx.activity:activity-compose:1.6.1")
-//    implementation("androidx.appcompat:appcompat:1.6.1")
-//    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
-//    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
-//}
+dependencies {
+    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+}
