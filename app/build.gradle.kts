@@ -41,7 +41,7 @@ android {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    output.outputFileName.set("${rootProject.name}-${Version.Application.name}-${variant.name}-${Version.Application.code}.apk")
+    output.outputFileName.set("${rootProject.name}Sample-${Version.Application.name}-${variant.name}-${Version.Application.code}.apk")
     afterEvaluate {
         tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
             targetCompatibility = Version.jvmTarget
