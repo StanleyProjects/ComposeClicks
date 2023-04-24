@@ -33,7 +33,7 @@ fun Modifier.onClick(
         }
 }
 
-internal fun Modifier.onClick(block: () -> Unit): Modifier {
+fun Modifier.onClick(block: () -> Unit): Modifier {
     return composed {
         Modifier.onClick(
             interactionSource = remember { MutableInteractionSource() },
