@@ -1,2 +1,2 @@
 # ComposeClicks
-Jetpack Compose clickable extentions.
+Jetpack Compose clickable extensions.
