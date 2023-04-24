@@ -28,10 +28,16 @@ android {
     namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     defaultConfig {
         minSdk = Version.Android.minSdk
         manifestPlaceholders["appName"] = "@string/app_name"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     productFlavors {
@@ -83,6 +89,7 @@ android {
 
 dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
+    testImplementation("org.robolectric:robolectric:4.10")
+    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
     "${android.testBuildType}Implementation"("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
 }
