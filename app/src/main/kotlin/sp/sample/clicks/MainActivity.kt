@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
+import sp.ax.jc.clicks.onLongClick
 
 private fun Modifier.button(block: Modifier.() -> Modifier): Modifier {
     return fillMaxWidth()
@@ -50,10 +51,19 @@ internal class MainActivity : AppCompatActivity() {
                     BasicText(
                         modifier = Modifier.button {
                             onClick {
-                                context.showToast("on tap...")
+                                context.showToast("on click...")
                             }
                         },
-                        text = "tap",
+                        text = "click",
+                        style = style,
+                    )
+                    BasicText(
+                        modifier = Modifier.button {
+                            onLongClick {
+                                context.showToast("on long click...")
+                            }
+                        },
+                        text = "long click",
                         style = style,
                     )
                     BasicText(
