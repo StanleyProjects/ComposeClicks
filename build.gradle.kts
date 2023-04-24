@@ -41,4 +41,3 @@ task<JavaExec>("checkCodeStyle") {
         "--reporter=html,output=${File(buildDir, "reports/analysis/code/style/html/index.html")}",
     )
 }
-

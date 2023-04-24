@@ -40,7 +40,7 @@ android {
             "release" -> "${Version.Application.name}-${variant.flavorName}"
             else -> "${Version.Application.name}-${variant.name}"
         }
-        output.outputFileName = "${rootProject.name}-${versionName}-${Version.Application.code}.aar"
+        output.outputFileName = "${rootProject.name}-$versionName-${Version.Application.code}.aar"
         afterEvaluate {
             tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
