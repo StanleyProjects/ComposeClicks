@@ -38,9 +38,8 @@ jacoco {
 }
 
 fun setCoverage(variant: com.android.build.gradle.api.LibraryVariant) {
-    val capitalize = variant.name.capitalize()
-    val taskUnitTest = tasks.getByName<Test>("test${capitalize}UnitTest")
-    val taskCoverageReport = task<JacocoReport>("test${capitalize}CoverageReport") {
+    val taskUnitTest = tasks.getByName<Test>("test".join(variant.name, "UnitTest"))
+    val taskCoverageReport = task<JacocoReport>("test".join(variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
         reports {
             csv.required.set(false)
@@ -53,7 +52,7 @@ fun setCoverage(variant: com.android.build.gradle.api.LibraryVariant) {
 //        executionData(taskUnitTest)
         executionData("${buildDir}/outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec")
     }
-    task<JacocoCoverageVerification>("test${capitalize}CoverageVerification") {
+    task<JacocoCoverageVerification>("test".join(variant.name, "CoverageVerification")) {
         dependsOn(taskCoverageReport)
         violationRules {
             rule {
@@ -160,13 +159,13 @@ android {
         afterEvaluate {
             setCoverage(variant)
             setCodeQuality(variant)
-            tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
+            tasks.getByName<JavaCompile>("compile".join(variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compile${variant.name.capitalize()}Kotlin") {
+            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compile".join(variant.name, "Kotlin")) {
                 kotlinOptions.jvmTarget = Version.jvmTarget
             }
-            task("assemble${variant.name.capitalize()}Pom") {
+            task("assemble".join(variant.name, "Pom")) {
                 doLast {
                     val target = File(buildDir, "libs").let {
                         it.mkdirs()
@@ -190,5 +189,5 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     testImplementation("org.robolectric:robolectric:4.10")
     testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
-    "test${android.testBuildType.capitalize()}Implementation"("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
+    "test".join(android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
 }
