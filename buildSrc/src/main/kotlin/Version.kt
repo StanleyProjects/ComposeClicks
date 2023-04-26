@@ -1,6 +1,5 @@
 object Version {
-//    const val jacoco = "0.8.7"
-//    const val jacoco = "0.8.8"
+    const val detekt = "1.22.0"
     const val jacoco = "0.8.9"
     const val jvmTarget = "11"
     const val kotlin = "1.7.10"

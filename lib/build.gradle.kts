@@ -7,6 +7,14 @@ plugins {
     id("com.android.library")
     id("kotlin-android")
     id("org.gradle.jacoco")
+    id("io.gitlab.arturbosch.detekt") version Version.detekt
+}
+
+fun String.join(vararg postfix: String): String {
+    check(isNotEmpty())
+    return postfix.filter { it.isNotEmpty() }.joinToString(separator = "", prefix = this) {
+        it.capitalize()
+    }
 }
 
 fun getVersionName(variant: com.android.build.gradle.api.LibraryVariant): String {
@@ -59,6 +67,49 @@ fun setCoverage(variant: com.android.build.gradle.api.LibraryVariant) {
     }
 }
 
+fun setCodeQuality(variant: com.android.build.gradle.api.LibraryVariant) {
+    val configs = setOf(
+        "comments",
+        "common",
+        "complexity",
+        "coroutines",
+        "empty-blocks",
+        "exceptions",
+        "naming",
+        "performance",
+        "potential-bugs",
+        "style",
+    ).map { config ->
+        File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
+            check(it.exists() && !it.isDirectory)
+        }
+    }
+    setOf("main", "test").forEach { source ->
+        task<io.gitlab.arturbosch.detekt.Detekt>("checkCodeQuality".join(variant.name, source)) {
+            jvmTarget = Version.jvmTarget
+            setSource(files("src/$source/kotlin"))
+            config.setFrom(configs)
+            reports {
+                html {
+                    required.set(true)
+                    outputLocation.set(File(buildDir, "reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
+                }
+                md.required.set(false)
+                sarif.required.set(false)
+                txt.required.set(false)
+                xml.required.set(false)
+            }
+            val postfix = when (source) {
+                "main" -> ""
+                "test" -> "UnitTest"
+                else -> error("Source \"$source\" is not supported!")
+            }
+            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name, postfix))
+            classpath.setFrom(detektTask.classpath)
+        }
+    }
+}
+
 android {
     namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
@@ -108,6 +159,7 @@ android {
         output.outputFileName = getOutputFileName(variant, "aar")
         afterEvaluate {
             setCoverage(variant)
+            setCodeQuality(variant)
             tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
