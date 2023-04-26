@@ -89,8 +89,8 @@ fun BaseVariant.checkCodeQuality() {
         }
     }
     setOf(
-        Triple("main", variant.sourceSets.flatMap { it.kotlinDirectories }, ""),
-        Triple("test", setOf(file("src/test/kotlin")), "UnitTest"),
+        Triple("main", variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }, ""),
+        Triple("test", files("src/test/kotlin"), "UnitTest"),
     ).forEach { (type, sources, postfix) ->
         task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "CodeQuality", postfix)) {
             jvmTarget = Version.jvmTarget
