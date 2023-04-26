@@ -1,4 +1,5 @@
 import java.net.URL
+import com.android.build.gradle.api.BaseVariant
 
 repositories {
     google()
@@ -20,29 +21,30 @@ fun String.join(vararg postfix: String): String {
     }
 }
 
-fun getVersionName(variant: com.android.build.gradle.api.BaseVariant): String {
-    return when (variant.buildType.name) {
-        "release" -> "${Version.Application.name}-${variant.flavorName}"
-        else -> "${Version.Application.name}-${variant.name}"
+fun BaseVariant.getVersionName(): String {
+    return when (buildType.name) {
+        "release" -> "${Version.Application.name}-$flavorName"
+        else -> "${Version.Application.name}-$name"
     }
 }
 
-fun getVersion(variant: com.android.build.gradle.api.BaseVariant): String {
-    return "${getVersionName(variant)}-${Version.Application.code}"
+fun BaseVariant.getVersion(): String {
+    return "${getVersionName()}-${Version.Application.code}"
 }
 
-fun getOutputFileName(variant: com.android.build.gradle.api.BaseVariant, extension: String): String {
+fun BaseVariant.getOutputFileName(extension: String): String {
     check(extension.isNotEmpty())
-    return "${rootProject.name}-${getVersion(variant)}.$extension"
+    return "${rootProject.name}-${getVersion()}.$extension"
 }
 
 jacoco {
     toolVersion = Version.jacoco
 }
 
-fun setCoverage(variant: com.android.build.gradle.api.BaseVariant) {
+fun BaseVariant.checkCoverage() {
+    val variant = this
     val taskUnitTest = tasks.getByName<Test>("test".join(variant.name, "UnitTest"))
-    val taskCoverageReport = task<JacocoReport>("test".join(variant.name, "CoverageReport")) {
+    val taskCoverageReport = task<JacocoReport>("assemble".join(variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
         reports {
             csv.required.set(false)
@@ -50,12 +52,11 @@ fun setCoverage(variant: com.android.build.gradle.api.BaseVariant) {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(File(buildDir, "tmp/kotlin-classes/" + variant.name))
+        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/" + variant.name))
         classDirectories.setFrom(dirs)
-//        executionData(taskUnitTest)
-        executionData(File(buildDir, "outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
     }
-    task<JacocoCoverageVerification>("test".join(variant.name, "CoverageVerification")) {
+    task<JacocoCoverageVerification>("check".join(variant.name, "Coverage")) {
         dependsOn(taskCoverageReport)
         violationRules {
             rule {
@@ -69,7 +70,8 @@ fun setCoverage(variant: com.android.build.gradle.api.BaseVariant) {
     }
 }
 
-fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
+fun BaseVariant.checkCodeQuality() {
+    val variant = this
     val configs = setOf(
         "comments",
         "common",
@@ -82,29 +84,27 @@ fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
         "potential-bugs",
         "style",
     ).map { config ->
-        File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml").also {
             check(it.exists() && !it.isDirectory)
         }
     }
-    setOf("main", "test").forEach { source ->
-        task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "CodeQuality", source)) {
+    setOf(
+        Triple("main", variant.sourceSets.flatMap { it.kotlinDirectories }, ""),
+        Triple("test", setOf(file("src/test/kotlin")), "UnitTest"),
+    ).forEach { (type, sources, postfix) ->
+        task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "CodeQuality", postfix)) {
             jvmTarget = Version.jvmTarget
-            setSource(files("src/$source/kotlin"))
+            setSource(sources)
             config.setFrom(configs)
             reports {
                 html {
                     required.set(true)
-                    outputLocation.set(File(buildDir, "reports/analysis/code/quality/${variant.name}/$source/html/index.html"))
+                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
                 }
                 md.required.set(false)
                 sarif.required.set(false)
                 txt.required.set(false)
                 xml.required.set(false)
-            }
-            val postfix = when (source) {
-                "main" -> ""
-                "test" -> "UnitTest"
-                else -> error("Source \"$source\" is not supported!")
             }
             val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name, postfix))
             classpath.setFrom(detektTask.classpath)
@@ -112,12 +112,13 @@ fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
     }
 }
 
-fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
+fun BaseVariant.checkDocumentation() {
+    val variant = this
     val configs = setOf(
         "common",
         "documentation",
     ).map { config ->
-        File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml").also {
             check(it.exists() && !it.isDirectory)
         }
     }
@@ -128,7 +129,7 @@ fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
         reports {
             html {
                 required.set(true)
-                outputLocation.set(File(buildDir, "reports/analysis/documentation/${variant.name}/html/index.html"))
+                outputLocation.set(buildDir.resolve("reports/analysis/documentation/${variant.name}/html/index.html"))
             }
             md.required.set(false)
             sarif.required.set(false)
@@ -140,11 +141,12 @@ fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
     }
 }
 
-fun assembleDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
+fun BaseVariant.assembleDocumentation() {
+    val variant = this
     task<org.jetbrains.dokka.gradle.DokkaTask>("assemble".join(variant.name, "Documentation")) {
         outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
         moduleName.set(Repository.name)
-        moduleVersion.set(getVersion(variant))
+        moduleVersion.set(getVersion())
         dokkaSourceSets {
             create(variant.name.join("main")) {
                 reportUndocumented.set(false)
@@ -205,12 +207,12 @@ android {
         val variant = this
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
-        output.outputFileName = getOutputFileName(variant, "aar")
+        output.outputFileName = getOutputFileName("aar")
         afterEvaluate {
-            setCoverage(variant)
-            setCodeQuality(variant)
-            checkDocumentation(variant)
-            assembleDocumentation(variant)
+            checkCoverage()
+            checkCodeQuality()
+            checkDocumentation()
+            assembleDocumentation()
             tasks.getByName<JavaCompile>("compile".join(variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
@@ -219,15 +221,15 @@ android {
             }
             task("assemble".join(variant.name, "Pom")) {
                 doLast {
-                    val target = File(buildDir, "libs").let {
+                    val target = buildDir.resolve("libs").let {
                         it.mkdirs()
-                        File(it, getOutputFileName(variant, "pom"))
+                        it.resolve(getOutputFileName("pom"))
                     }
                     if (target.exists()) target.delete()
                     val text = MavenUtil.pom(
                         groupId = Maven.groupId,
                         artifactId = Maven.artifactId,
-                        version = getVersion(variant),
+                        version = variant.getVersion(),
                         packaging = "aar"
                     )
                     target.writeText(text)
