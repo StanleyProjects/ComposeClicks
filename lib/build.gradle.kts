@@ -1,3 +1,5 @@
+import java.net.URL
+
 repositories {
     google()
     mavenCentral()
@@ -8,6 +10,7 @@ plugins {
     id("kotlin-android")
     id("org.gradle.jacoco")
     id("io.gitlab.arturbosch.detekt") version Version.detekt
+    id("org.jetbrains.dokka") version Version.dokka
 }
 
 fun String.join(vararg postfix: String): String {
@@ -84,7 +87,7 @@ fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
         }
     }
     setOf("main", "test").forEach { source ->
-        task<io.gitlab.arturbosch.detekt.Detekt>("checkCodeQuality".join(variant.name, source)) {
+        task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "CodeQuality", source)) {
             jvmTarget = Version.jvmTarget
             setSource(files("src/$source/kotlin"))
             config.setFrom(configs)
@@ -118,7 +121,7 @@ fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
             check(it.exists() && !it.isDirectory)
         }
     }
-    task<io.gitlab.arturbosch.detekt.Detekt>("checkDocumentation".join(variant.name)) {
+    task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "Documentation")) {
         jvmTarget = Version.jvmTarget
         setSource(files("src/main/kotlin"))
         config.setFrom(configs)
@@ -134,6 +137,25 @@ fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
         }
         val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name))
         classpath.setFrom(detektTask.classpath)
+    }
+}
+
+fun assembleDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
+    task<org.jetbrains.dokka.gradle.DokkaTask>("assemble".join(variant.name, "Documentation")) {
+        outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
+        moduleName.set(Repository.name)
+        moduleVersion.set(getVersion(variant))
+        dokkaSourceSets {
+            create(variant.name.join("main")) {
+                reportUndocumented.set(false)
+                sourceLink {
+                    val path = "src/main/kotlin"
+                    localDirectory.set(file(path))
+                    remoteUrl.set(URL("${Repository.url()}/tree/${moduleVersion.get()}/lib/$path"))
+                }
+                jdkVersion.set(Version.jvmTarget.toInt())
+            }
+        }
     }
 }
 
@@ -188,6 +210,7 @@ android {
             setCoverage(variant)
             setCodeQuality(variant)
             checkDocumentation(variant)
+            assembleDocumentation(variant)
             tasks.getByName<JavaCompile>("compile".join(variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }

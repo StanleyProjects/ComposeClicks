@@ -2,6 +2,7 @@ package sp.ax.jc.clicks
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,11 +13,15 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
 
 // todo pointerInput key
+/**
+ * Configure component to receive clicks via tap gestures.
+ */
 fun Modifier.onClick(
     interactionSource: MutableInteractionSource,
     indication: Indication,
     block: () -> Unit,
 ): Modifier {
+    clickable {  }
     return indication(interactionSource = interactionSource, indication = indication)
         .pointerInput(null) {
             detectTapGestures(
