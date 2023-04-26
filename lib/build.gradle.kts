@@ -50,7 +50,7 @@ fun setCoverage(variant: com.android.build.gradle.api.BaseVariant) {
         val dirs = fileTree(File(buildDir, "tmp/kotlin-classes/" + variant.name))
         classDirectories.setFrom(dirs)
 //        executionData(taskUnitTest)
-        executionData("${buildDir}/outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec")
+        executionData(File(buildDir, "outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
     }
     task<JacocoCoverageVerification>("test".join(variant.name, "CoverageVerification")) {
         dependsOn(taskCoverageReport)
@@ -109,6 +109,34 @@ fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
     }
 }
 
+fun checkDocumentation(variant: com.android.build.gradle.api.BaseVariant) {
+    val configs = setOf(
+        "common",
+        "documentation",
+    ).map { config ->
+        File(rootDir, "buildSrc/src/main/resources/detekt/config/$config.yml").also {
+            check(it.exists() && !it.isDirectory)
+        }
+    }
+    task<io.gitlab.arturbosch.detekt.Detekt>("checkDocumentation".join(variant.name)) {
+        jvmTarget = Version.jvmTarget
+        setSource(files("src/main/kotlin"))
+        config.setFrom(configs)
+        reports {
+            html {
+                required.set(true)
+                outputLocation.set(File(buildDir, "reports/analysis/documentation/${variant.name}/html/index.html"))
+            }
+            md.required.set(false)
+            sarif.required.set(false)
+            txt.required.set(false)
+            xml.required.set(false)
+        }
+        val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name))
+        classpath.setFrom(detektTask.classpath)
+    }
+}
+
 android {
     namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
@@ -159,6 +187,7 @@ android {
         afterEvaluate {
             setCoverage(variant)
             setCodeQuality(variant)
+            checkDocumentation(variant)
             tasks.getByName<JavaCompile>("compile".join(variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
