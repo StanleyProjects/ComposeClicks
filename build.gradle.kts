@@ -11,7 +11,7 @@ buildscript {
 }
 
 task<Delete>("clean") {
-    delete = setOf(buildDir, "buildSrc/build")
+    delete = setOf(buildDir, buildSrc("build"))
 }
 
 repositories.mavenCentral()
@@ -29,6 +29,8 @@ dependencies {
 task<JavaExec>("checkCodeStyle") {
     classpath = ktlint
     mainClass.set("com.pinterest.ktlint.Main")
+    val reporter = "html"
+    val output = buildDir("reports/analysis/code/style/html/index.html")
     args(
         "build.gradle.kts",
         "settings.gradle.kts",
@@ -37,6 +39,6 @@ task<JavaExec>("checkCodeStyle") {
         "lib/src/main/kotlin/**/*.kt",
         "lib/src/test/kotlin/**/*.kt",
         "lib/build.gradle.kts",
-        "--reporter=html,output=${File(buildDir, "reports/analysis/code/style/html/index.html")}",
+        "--reporter=$reporter,output=${output.absolutePath}",
     )
 }

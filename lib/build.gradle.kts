@@ -52,9 +52,9 @@ fun BaseVariant.checkCoverage() {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/" + variant.name))
+        val dirs = fileTree(buildDir("tmp/kotlin-classes/${variant.name}"))
         classDirectories.setFrom(dirs)
-        executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        executionData(buildDir("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
     }
     task<JacocoCoverageVerification>("check".join(variant.name, "Coverage")) {
         dependsOn(taskCoverageReport)
@@ -84,7 +84,7 @@ fun BaseVariant.checkCodeQuality() {
         "potential-bugs",
         "style",
     ).map { config ->
-        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml").also {
+        rootProject.buildSrc("src/main/resources/detekt/config/$config.yml").also {
             check(it.exists() && !it.isDirectory)
         }
     }
@@ -99,7 +99,7 @@ fun BaseVariant.checkCodeQuality() {
             reports {
                 html {
                     required.set(true)
-                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
+                    outputLocation.set(buildDir("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
                 }
                 md.required.set(false)
                 sarif.required.set(false)
@@ -118,7 +118,7 @@ fun BaseVariant.checkDocumentation() {
         "common",
         "documentation",
     ).map { config ->
-        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml").also {
+        rootProject.buildSrc("src/main/resources/detekt/config/$config.yml").also {
             check(it.exists() && !it.isDirectory)
         }
     }
@@ -129,7 +129,7 @@ fun BaseVariant.checkDocumentation() {
         reports {
             html {
                 required.set(true)
-                outputLocation.set(buildDir.resolve("reports/analysis/documentation/${variant.name}/html/index.html"))
+                outputLocation.set(buildDir("reports/analysis/documentation/${variant.name}/html/index.html"))
             }
             md.required.set(false)
             sarif.required.set(false)
@@ -144,7 +144,7 @@ fun BaseVariant.checkDocumentation() {
 fun BaseVariant.assembleDocumentation() {
     val variant = this
     task<org.jetbrains.dokka.gradle.DokkaTask>("assemble".join(variant.name, "Documentation")) {
-        outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
+        outputDirectory.set(buildDir("documentation/${variant.name}"))
         moduleName.set(Repository.name)
         moduleVersion.set(getVersion())
         dokkaSourceSets {
@@ -221,7 +221,7 @@ android {
             }
             task("assemble".join(variant.name, "Pom")) {
                 doLast {
-                    val target = buildDir.resolve("libs").let {
+                    val target = buildDir("libs").let {
                         it.mkdirs()
                         it.resolve(getOutputFileName("pom"))
                     }
