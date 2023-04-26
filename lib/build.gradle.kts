@@ -17,18 +17,18 @@ fun String.join(vararg postfix: String): String {
     }
 }
 
-fun getVersionName(variant: com.android.build.gradle.api.LibraryVariant): String {
+fun getVersionName(variant: com.android.build.gradle.api.BaseVariant): String {
     return when (variant.buildType.name) {
         "release" -> "${Version.Application.name}-${variant.flavorName}"
         else -> "${Version.Application.name}-${variant.name}"
     }
 }
 
-fun getVersion(variant: com.android.build.gradle.api.LibraryVariant): String {
+fun getVersion(variant: com.android.build.gradle.api.BaseVariant): String {
     return "${getVersionName(variant)}-${Version.Application.code}"
 }
 
-fun getOutputFileName(variant: com.android.build.gradle.api.LibraryVariant, extension: String): String {
+fun getOutputFileName(variant: com.android.build.gradle.api.BaseVariant, extension: String): String {
     check(extension.isNotEmpty())
     return "${rootProject.name}-${getVersion(variant)}.$extension"
 }
@@ -37,7 +37,7 @@ jacoco {
     toolVersion = Version.jacoco
 }
 
-fun setCoverage(variant: com.android.build.gradle.api.LibraryVariant) {
+fun setCoverage(variant: com.android.build.gradle.api.BaseVariant) {
     val taskUnitTest = tasks.getByName<Test>("test".join(variant.name, "UnitTest"))
     val taskCoverageReport = task<JacocoReport>("test".join(variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
@@ -66,7 +66,7 @@ fun setCoverage(variant: com.android.build.gradle.api.LibraryVariant) {
     }
 }
 
-fun setCodeQuality(variant: com.android.build.gradle.api.LibraryVariant) {
+fun setCodeQuality(variant: com.android.build.gradle.api.BaseVariant) {
     val configs = setOf(
         "comments",
         "common",
