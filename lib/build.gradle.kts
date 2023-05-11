@@ -1,5 +1,5 @@
-import java.net.URL
 import com.android.build.gradle.api.BaseVariant
+import java.net.URL
 
 repositories {
     google()
@@ -14,27 +14,20 @@ plugins {
     id("org.jetbrains.dokka") version Version.dokka
 }
 
-fun String.join(vararg postfix: String): String {
-    check(isNotEmpty())
-    return postfix.filter { it.isNotEmpty() }.joinToString(separator = "", prefix = this) {
-        it.capitalize()
-    }
-}
-
 fun BaseVariant.getVersionName(): String {
     return when (buildType.name) {
-        "release" -> "${Version.Application.name}-$flavorName"
-        else -> "${Version.Application.name}-$name"
+        "release" -> kebabCase(Version.Application.name, flavorName)
+        else -> kebabCase(Version.Application.name, name)
     }
 }
 
 fun BaseVariant.getVersion(): String {
-    return "${getVersionName()}-${Version.Application.code}"
+    return kebabCase(getVersionName(), Version.Application.code.toString())
 }
 
 fun BaseVariant.getOutputFileName(extension: String): String {
     check(extension.isNotEmpty())
-    return "${rootProject.name}-${getVersion()}.$extension"
+    return "${kebabCase(rootProject.name, getVersion())}.$extension"
 }
 
 jacoco {
@@ -43,8 +36,8 @@ jacoco {
 
 fun BaseVariant.checkCoverage() {
     val variant = this
-    val taskUnitTest = tasks.getByName<Test>("test".join(variant.name, "UnitTest"))
-    val taskCoverageReport = task<JacocoReport>("assemble".join(variant.name, "CoverageReport")) {
+    val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
+    val taskCoverageReport = task<JacocoReport>(camelCase("assemble", variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
         reports {
             csv.required.set(false)
@@ -52,11 +45,11 @@ fun BaseVariant.checkCoverage() {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir("tmp/kotlin-classes/${variant.name}"))
+        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/${variant.name}"))
         classDirectories.setFrom(dirs)
-        executionData(buildDir("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
     }
-    task<JacocoCoverageVerification>("check".join(variant.name, "Coverage")) {
+    task<JacocoCoverageVerification>(camelCase("check", variant.name, "Coverage")) {
         dependsOn(taskCoverageReport)
         violationRules {
             rule {
@@ -84,29 +77,30 @@ fun BaseVariant.checkCodeQuality() {
         "potential-bugs",
         "style",
     ).map { config ->
-        rootProject.buildSrc("src/main/resources/detekt/config/$config.yml").also {
-            check(it.exists() && !it.isDirectory)
-        }
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+            .existing()
+            .file()
+            .filled()
     }
     setOf(
         Triple("main", variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }, ""),
         Triple("test", files("src/test/kotlin"), "UnitTest"),
     ).forEach { (type, sources, postfix) ->
-        task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "CodeQuality", postfix)) {
+        task<io.gitlab.arturbosch.detekt.Detekt>(camelCase("check", variant.name, "CodeQuality", postfix)) {
             jvmTarget = Version.jvmTarget
             setSource(sources)
             config.setFrom(configs)
             reports {
                 html {
                     required.set(true)
-                    outputLocation.set(buildDir("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
+                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
                 }
                 md.required.set(false)
                 sarif.required.set(false)
                 txt.required.set(false)
                 xml.required.set(false)
             }
-            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name, postfix))
+            val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name, postfix))
             classpath.setFrom(detektTask.classpath)
         }
     }
@@ -118,37 +112,38 @@ fun BaseVariant.checkDocumentation() {
         "common",
         "documentation",
     ).map { config ->
-        rootProject.buildSrc("src/main/resources/detekt/config/$config.yml").also {
-            check(it.exists() && !it.isDirectory)
-        }
+        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+            .existing()
+            .file()
+            .filled()
     }
-    task<io.gitlab.arturbosch.detekt.Detekt>("check".join(variant.name, "Documentation")) {
+    task<io.gitlab.arturbosch.detekt.Detekt>(camelCase("check", variant.name, "Documentation")) {
         jvmTarget = Version.jvmTarget
         setSource(files("src/main/kotlin"))
         config.setFrom(configs)
         reports {
             html {
                 required.set(true)
-                outputLocation.set(buildDir("reports/analysis/documentation/${variant.name}/html/index.html"))
+                outputLocation.set(buildDir.resolve("reports/analysis/documentation/${variant.name}/html/index.html"))
             }
             md.required.set(false)
             sarif.required.set(false)
             txt.required.set(false)
             xml.required.set(false)
         }
-        val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>("detekt".join(variant.name))
+        val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name))
         classpath.setFrom(detektTask.classpath)
     }
 }
 
 fun BaseVariant.assembleDocumentation() {
     val variant = this
-    task<org.jetbrains.dokka.gradle.DokkaTask>("assemble".join(variant.name, "Documentation")) {
-        outputDirectory.set(buildDir("documentation/${variant.name}"))
+    task<org.jetbrains.dokka.gradle.DokkaTask>(camelCase("assemble", variant.name, "Documentation")) {
+        outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
         moduleName.set(Repository.name)
         moduleVersion.set(getVersion())
         dokkaSourceSets {
-            create(variant.name.join("main")) {
+            create("${variant.name}Main") {
                 reportUndocumented.set(false)
                 sourceLink {
                     val path = "src/main/kotlin"
@@ -213,19 +208,21 @@ android {
             checkCodeQuality()
             checkDocumentation()
             assembleDocumentation()
-            tasks.getByName<JavaCompile>("compile".join(variant.name, "JavaWithJavac")) {
+            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compile".join(variant.name, "Kotlin")) {
+            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
                 kotlinOptions.jvmTarget = Version.jvmTarget
             }
-            task("assemble".join(variant.name, "Pom")) {
+            task(camelCase("assemble", variant.name, "Pom")) {
                 doLast {
-                    val target = buildDir("libs").let {
-                        it.mkdirs()
-                        it.resolve(getOutputFileName("pom"))
+                    val target = buildDir.resolve("libs/${getOutputFileName("pom")}")
+                    if (target.exists()) {
+                        check(target.isFile)
+                        check(target.delete())
+                    } else {
+                        target.parentFile?.mkdirs()
                     }
-                    if (target.exists()) target.delete()
                     val text = MavenUtil.pom(
                         groupId = Maven.groupId,
                         artifactId = Maven.artifactId,
@@ -243,5 +240,5 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     testImplementation("org.robolectric:robolectric:4.10")
     testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
-    "test".join(android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
+    camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
 }
