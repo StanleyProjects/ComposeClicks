@@ -5,10 +5,10 @@ Jetpack Compose clickable extensions.
 
 ## Snapshot
 
-![version](https://img.shields.io/static/v1?label=version&message=0.1.0-SNAPSHOT&labelColor=212121&color=2962ff&style=flat)
+![version](https://img.shields.io/static/v1?label=version&message=0.1.1-SNAPSHOT&labelColor=212121&color=2962ff&style=flat)
 
-- [Maven](https://s01.oss.sonatype.org/content/repositories/snapshots/com/github/kepocnhh/ComposeClicks/0.1.0-SNAPSHOT)
-- [Documentation](https://StanleyProjects.github.io/ComposeClicks/doc/0.1.0-SNAPSHOT)
+- [Maven](https://s01.oss.sonatype.org/content/repositories/snapshots/com/github/kepocnhh/ComposeClicks/0.1.1-SNAPSHOT)
+- [Documentation](https://StanleyProjects.github.io/ComposeClicks/doc/0.1.1-SNAPSHOT)
 
 ### Build
 ```
@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.kepocnhh:ComposeClicks:0.1.0-SNAPSHOT")
+    implementation("com.github.kepocnhh:ComposeClicks:0.1.1-SNAPSHOT")
 }
 ```
 
