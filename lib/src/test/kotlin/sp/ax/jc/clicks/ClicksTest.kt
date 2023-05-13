@@ -3,7 +3,6 @@ package sp.ax.jc.clicks
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
@@ -37,7 +36,7 @@ internal class ClicksTest {
                         },
                         onLongClick = {
                             longClick = !longClick
-                        }
+                        },
                     ),
             )
         }
