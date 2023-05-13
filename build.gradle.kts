@@ -42,3 +42,12 @@ task<JavaExec>("checkCodeStyle") {
         "--reporter=$reporter,output=${output.absolutePath}",
     )
 }
+
+task("checkLicense") {
+    doLast {
+        rootDir.resolve("LICENSE").check(
+            expected = emptySet(), // todo author
+            report = buildDir.resolve("reports/analysis/license/index.html"),
+        )
+    }
+}
