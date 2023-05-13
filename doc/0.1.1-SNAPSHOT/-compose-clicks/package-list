@@ -1,0 +1,11 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:sp.ax.jc.clicks////PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/index.html
+$dokka.location:sp.ax.jc.clicks//clicks/androidx.compose.ui.Modifier#kotlin.Any?#androidx.compose.foundation.interaction.MutableInteractionSource#androidx.compose.foundation.Indication#kotlin.Function0[kotlin.Unit]#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/clicks.html
+$dokka.location:sp.ax.jc.clicks//clicks/androidx.compose.ui.Modifier#kotlin.Function0[kotlin.Unit]#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/clicks.html
+$dokka.location:sp.ax.jc.clicks//onClick/androidx.compose.ui.Modifier#kotlin.Any?#androidx.compose.foundation.interaction.MutableInteractionSource#androidx.compose.foundation.Indication#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/on-click.html
+$dokka.location:sp.ax.jc.clicks//onClick/androidx.compose.ui.Modifier#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/on-click.html
+$dokka.location:sp.ax.jc.clicks//onLongClick/androidx.compose.ui.Modifier#kotlin.Any?#androidx.compose.foundation.interaction.MutableInteractionSource#androidx.compose.foundation.Indication#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/on-long-click.html
+$dokka.location:sp.ax.jc.clicks//onLongClick/androidx.compose.ui.Modifier#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/-compose-clicks/sp.ax.jc.clicks/on-long-click.html
+sp.ax.jc.clicks
+
