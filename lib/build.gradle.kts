@@ -1,7 +1,7 @@
 import com.android.build.gradle.api.BaseVariant
 import java.net.URL
 
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     google()
