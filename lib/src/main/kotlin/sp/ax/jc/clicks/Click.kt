@@ -14,6 +14,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 // todo pointerInput key
 /**
  * Configure component to receive clicks via tap gestures.
+ * @see [Modifier.clickable]
+ * @see [Modifier.indication]
+ * @author [Stanley Wintergreen](https://github.com/kepocnhh)
+ * @since 0.1.0-3
  */
 fun Modifier.onClick(
     interactionSource: MutableInteractionSource,
@@ -37,6 +41,12 @@ fun Modifier.onClick(
         }
 }
 
+/**
+ * Configure component to receive clicks via tap gestures with default [MutableInteractionSource] and [Indication].
+ * @see [Modifier.clickable]
+ * @author [Stanley Wintergreen](https://github.com/kepocnhh)
+ * @since 0.1.0-3
+ */
 fun Modifier.onClick(block: () -> Unit): Modifier {
     return composed {
         Modifier.onClick(
