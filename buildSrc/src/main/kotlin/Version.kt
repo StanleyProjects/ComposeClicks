@@ -14,7 +14,7 @@ object Version {
     }
 
     object Application {
-        const val code = 3
+        const val code = 4
         const val name = "0.1.0"
     }
 }
