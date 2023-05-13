@@ -257,8 +257,8 @@ android {
         checkReadme()
         if (buildType.name == testBuildType) {
             checkCoverage()
-            checkCodeQuality()
         }
+        checkCodeQuality()
         checkDocumentation()
         assembleDocumentation()
         assemblePom()

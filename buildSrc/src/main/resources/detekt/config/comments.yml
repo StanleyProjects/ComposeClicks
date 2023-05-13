@@ -1,9 +1,9 @@
-# 2022/06/12
+# 2023/05/10
 
 comments:
   active: true
   AbsentOrWrongFileLicense:
-    active: true
+    active: false
   CommentOverPrivateFunction:
     active: true
   CommentOverPrivateProperty:
@@ -11,6 +11,8 @@ comments:
   DeprecatedBlockTag:
     active: true
   EndOfSentenceFormat:
+    active: false
+  KDocReferencesNonPublicProperty:
     active: true
   OutdatedDocumentation:
     active: true

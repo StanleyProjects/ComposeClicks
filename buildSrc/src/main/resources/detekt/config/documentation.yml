@@ -1,4 +1,4 @@
-# 2023/04/26
+# 2023/05/10
 
 comments:
   active: true
@@ -11,8 +11,7 @@ comments:
   DeprecatedBlockTag:
     active: false
   EndOfSentenceFormat:
-    active: true
-    endOfSentenceFormat: '([.?!][ \t\n\r\f<])|([.?!:]$)'
+    active: false
   KDocReferencesNonPublicProperty:
     active: true
   OutdatedDocumentation:

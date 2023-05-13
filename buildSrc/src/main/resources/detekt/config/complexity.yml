@@ -1,4 +1,4 @@
-# 2022/06/12
+# 2023/05/02
 
 complexity:
   active: true
@@ -10,7 +10,8 @@ complexity:
     threshold: 10
     includeStaticDeclarations: false
     includePrivateDeclarations: false
-  ComplexMethod:
+    ignoreOverloaded: false
+  CyclomaticComplexMethod:
     active: true
     threshold: 15
     ignoreSingleWhenExpression: false
@@ -43,8 +44,12 @@ complexity:
   NestedBlockDepth:
     active: true
     threshold: 4
-  ReplaceSafeCallChainWithRun:
+  NestedScopeFunctions:
     active: true
+    threshold: 1
+    functions: ['kotlin.apply', 'kotlin.run', 'kotlin.with', 'kotlin.let', 'kotlin.also']
+  ReplaceSafeCallChainWithRun:
+    active: false
   StringLiteralDuplication:
     active: true
     threshold: 3

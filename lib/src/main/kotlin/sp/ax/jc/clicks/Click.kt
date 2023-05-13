@@ -23,9 +23,10 @@ fun Modifier.onClick(
     return indication(interactionSource = interactionSource, indication = indication)
         .pointerInput(null) {
             detectTapGestures(
-                onPress = {
-                    val press = PressInteraction.Press(it)
+                onPress = { offset ->
+                    val press = PressInteraction.Press(offset)
                     interactionSource.emit(press)
+                    @Suppress("IgnoredReturnValue")
                     tryAwaitRelease()
                     interactionSource.emit(PressInteraction.Release(press))
                 },

@@ -1,10 +1,9 @@
-# 2022/06/12
+# 2023/05/02
 
 potential-bugs:
   active: true
   AvoidReferentialEquality:
-    active: false
-
+    active: true
   CastToNullableType:
     active: true
   Deprecation:
@@ -23,7 +22,9 @@ potential-bugs:
       'java.util.LinkedHashMap',
       'java.util.HashMap'
     ]
-  DuplicateCaseInWhenExpression:
+  DuplicateCaseInWhenExpression: # deprecated?
+    active: true
+  ElseCaseInsteadOfExhaustiveWhen:
     active: true
   EqualsAlwaysReturnsTrueOrFalse:
     active: true
@@ -37,16 +38,18 @@ potential-bugs:
     active: true
   IgnoredReturnValue:
     active: true
-    restrictToAnnotatedMethods: false
+    restrictToConfig: false
     ignoreFunctionCall: [
+      java.lang.StringBuilder.append,
+      kotlin.TODO,
       kotlin.collections.MutableList.add,
       kotlin.collections.MutableSet.add,
       kotlin.collections.MutableSet.addAll,
       kotlin.collections.removeAll,
       kotlin.error,
-      kotlin.TODO,
       kotlinx.coroutines.launch,
-      kotlinx.coroutines.withContext
+      kotlinx.coroutines.withContext,
+      org.junit.jupiter.api.Assertions.assertThrows
     ]
   ImplicitDefaultLocale:
     active: true
@@ -66,16 +69,13 @@ potential-bugs:
     active: true
   MissingPackageDeclaration:
     active: true
-  MissingWhenCase:
-    allowElseExpression: true
-    active: true
   NullCheckOnMutableProperty:
     active: true
   NullableToStringCall:
     active: true
-  RedundantElseInWhen:
-    active: true
   UnconditionalJumpStatementInLoop:
+    active: true
+  UnnecessaryNotNullCheck:
     active: true
   UnnecessaryNotNullOperator:
     active: true
