@@ -16,8 +16,14 @@ plugins {
 
 fun BaseVariant.getVersionName(): String {
     return when (buildType.name) {
-        "release" -> kebabCase(Version.Application.name, flavorName)
-        else -> kebabCase(Version.Application.name, name)
+        "release" -> {
+            when (flavorName) {
+                "snapshot" -> kebabCase(Version.Application.name, flavorName.toUpperCase())
+                else -> error("Flavor \"$flavorName\" is not supported!")
+            }
+        }
+        "debug" -> kebabCase(Version.Application.name, name)
+        else -> error("Build type \"${buildType.name}\" is not supported!")
     }
 }
 
