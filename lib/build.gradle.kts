@@ -231,7 +231,6 @@ android {
     }
 
     buildTypes.getByName(testBuildType) {
-//        enableUnitTestCoverage = true
         isTestCoverageEnabled = true
     }
 
