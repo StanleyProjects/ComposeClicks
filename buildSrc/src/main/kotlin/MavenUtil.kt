@@ -1,7 +1,10 @@
 import java.net.URL
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-object MavenUtil {
+internal object MavenUtil {
     private const val MAVEN_APACHE_URL = "http://maven.apache.org"
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
     fun pom(
         modelVersion: String = "4.0.0",
@@ -31,6 +34,26 @@ object MavenUtil {
         ) { (key, value) ->
             "<$key>$value</$key>"
         }
+    }
+
+    fun metadata(
+        groupId: String,
+        artifactId: String,
+        version: String,
+        dateTime: LocalDateTime = LocalDateTime.now(),
+    ): String {
+        return """
+            <metadata>
+                <groupId>$groupId</groupId>
+                <artifactId>$artifactId</artifactId>
+                <versioning>
+                    <versions>
+                        <version>$version</version>
+                    </versions>
+                    <lastUpdated>${dateTimeFormatter.format(dateTime)}</lastUpdated>
+                </versioning>
+            </metadata>
+            """.trimIndent()
     }
 
     object Snapshot {

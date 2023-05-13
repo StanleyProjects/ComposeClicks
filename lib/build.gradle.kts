@@ -1,6 +1,8 @@
 import com.android.build.gradle.api.BaseVariant
 import java.net.URL
 
+version = "0.1.0"
+
 repositories {
     google()
     mavenCentral()
@@ -14,21 +16,13 @@ plugins {
     id("org.jetbrains.dokka") version Version.dokka
 }
 
-fun BaseVariant.getVersionName(): String {
+fun BaseVariant.getVersion(): String {
+    check(flavorName.isEmpty())
     return when (buildType.name) {
-        "release" -> {
-            when (flavorName) {
-                "snapshot" -> kebabCase(Version.Application.name, flavorName.toUpperCase())
-                else -> error("Flavor \"$flavorName\" is not supported!")
-            }
-        }
-        "debug" -> kebabCase(Version.Application.name, name)
+        "debug" -> kebabCase(version.toString(), "SNAPSHOT")
+        "release" -> version.toString()
         else -> error("Build type \"${buildType.name}\" is not supported!")
     }
-}
-
-fun BaseVariant.getVersion(): String {
-    return kebabCase(getVersionName(), Version.Application.code.toString())
 }
 
 fun BaseVariant.getOutputFileName(extension: String): String {
@@ -193,6 +187,47 @@ fun BaseVariant.assemblePom() {
     }
 }
 
+fun BaseVariant.assembleMetadata() {
+    task(camelCase("assemble", name, "Metadata")) {
+        doLast {
+            val target = buildDir.resolve("yml/metadata.yml")
+            if (target.exists()) {
+                check(target.isFile)
+                check(target.delete())
+            } else {
+                target.parentFile?.mkdirs()
+            }
+            val text = """
+                repository:
+                 owner: '${Repository.owner}'
+                 name: '${Repository.name}'
+                version: '${getVersion()}'
+            """.trimIndent()
+            target.writeText(text)
+        }
+    }
+}
+
+fun BaseVariant.assembleMavenMetadata() {
+    task(camelCase("assemble", name, "MavenMetadata")) {
+        doLast {
+            val target = buildDir.resolve("xml/maven-metadata.xml")
+            if (target.exists()) {
+                check(target.isFile)
+                check(target.delete())
+            } else {
+                target.parentFile?.mkdirs()
+            }
+            val text = MavenUtil.metadata(
+                groupId = Maven.groupId,
+                artifactId = Maven.artifactId,
+                version = getVersion(),
+            )
+            target.writeText(text)
+        }
+    }
+}
+
 fun BaseVariant.checkReadme() {
     task(camelCase("check", name, "Readme")) {
         doLast {
@@ -244,17 +279,6 @@ android {
         isTestCoverageEnabled = true
     }
 
-    productFlavors {
-        mapOf("version" to setOf("snapshot")).forEach { (dimension, flavors) ->
-            flavorDimensions += dimension
-            flavors.forEach { flavor ->
-                create(flavor) {
-                    this.dimension = dimension
-                }
-            }
-        }
-    }
-
     buildFeatures.compose = true
 
     composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
@@ -272,6 +296,8 @@ android {
         checkDocumentation()
         assembleDocumentation()
         assemblePom()
+        assembleMetadata()
+        assembleMavenMetadata()
         afterEvaluate {
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget

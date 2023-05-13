@@ -12,9 +12,4 @@ object Version {
         const val targetSdk = compileSdk
         const val compose = "1.3.1"
     }
-
-    object Application {
-        const val code = 4
-        const val name = "0.1.0"
-    }
 }

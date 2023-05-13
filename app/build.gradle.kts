@@ -18,8 +18,8 @@ android {
         applicationId = appId
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = Version.Application.name
-        versionCode = Version.Application.code
+        versionName = "0.0.1"
+        versionCode = 1
         manifestPlaceholders["appName"] = "@string/app_name"
     }
 
@@ -41,7 +41,14 @@ android {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    output.outputFileName.set("${rootProject.name}Sample-${Version.Application.name}-${variant.name}-${Version.Application.code}.apk")
+    android.defaultConfig.versionName
+    val outputFileName = kebabCase(
+        camelCase(rootProject.name, "Sample"),
+        android.defaultConfig.versionName!!,
+        variant.name,
+        android.defaultConfig.versionCode.toString(),
+    )
+    output.outputFileName.set("$outputFileName.apk")
     afterEvaluate {
         tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
             targetCompatibility = Version.jvmTarget
