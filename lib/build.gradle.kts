@@ -95,7 +95,17 @@ fun BaseVariant.checkCodeQuality() {
         task<io.gitlab.arturbosch.detekt.Detekt>(camelCase("check", variant.name, "CodeQuality", postfix)) {
             jvmTarget = Version.jvmTarget
             setSource(sources)
-            config.setFrom(configs)
+            when (type) {
+                "main" -> config.setFrom(configs)
+                "test" -> {
+                    val test = rootDir.resolve("buildSrc/src/main/resources/detekt/config/android/test.yml")
+                            .existing()
+                            .file()
+                            .filled()
+                    config.setFrom(configs + test)
+                }
+                else -> error("Type \"$type\" is not supported!")
+            }
             reports {
                 html {
                     required.set(true)

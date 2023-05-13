@@ -1,0 +1,11 @@
+# 2023/05/13
+
+potential-bugs:
+  active: true
+  IgnoredReturnValue:
+    active: true
+    restrictToConfig: false
+    ignoreFunctionCall: [
+      androidx.compose.ui.test.performClick,
+      androidx.compose.ui.test.performTouchInput
+    ]

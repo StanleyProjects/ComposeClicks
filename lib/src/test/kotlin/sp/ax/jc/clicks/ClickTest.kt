@@ -20,7 +20,7 @@ internal class ClickTest {
     val rule = createComposeRule()
 
     @Test
-    fun clickTest() {
+    fun onClickTest() {
         var value = false
         val tag = "clickable"
         rule.setContent {
@@ -33,8 +33,10 @@ internal class ClickTest {
             )
         }
         assertFalse(value)
+        @Suppress("IgnoredReturnValue")
         rule.onNodeWithTag(tag).performClick()
         assertTrue(value)
+        @Suppress("IgnoredReturnValue")
         rule.onNodeWithTag(tag).performClick()
         assertFalse(value)
     }

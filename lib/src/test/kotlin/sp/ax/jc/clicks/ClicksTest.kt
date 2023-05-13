@@ -21,9 +21,12 @@ internal class ClicksTest {
     @get:Rule
     val rule = createComposeRule()
 
+    @Suppress("MemberNameEqualsClassName")
     @Test
     fun clicksTest() {
+        @Suppress("BooleanPropertyNaming")
         var click = false
+        @Suppress("BooleanPropertyNaming")
         var longClick = false
         val tag = "clickable"
         rule.setContent {
