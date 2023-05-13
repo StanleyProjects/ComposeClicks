@@ -23,7 +23,7 @@ internal class ClicksTest {
     val rule = createComposeRule()
 
     @Test
-    fun clickTest() {
+    fun clicksTest() {
         var click = false
         var longClick = false
         val tag = "clickable"
