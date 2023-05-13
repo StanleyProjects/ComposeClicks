@@ -227,7 +227,7 @@ android {
                         groupId = Maven.groupId,
                         artifactId = Maven.artifactId,
                         version = variant.getVersion(),
-                        packaging = "aar"
+                        packaging = "aar",
                     )
                     target.writeText(text)
                 }

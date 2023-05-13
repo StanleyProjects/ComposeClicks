@@ -6,13 +6,13 @@ object MavenUtil {
         groupId: String,
         artifactId: String,
         version: String,
-        packaging: String
+        packaging: String,
     ): String {
         val pomUrl = "$MAVEN_APACHE_URL/POM/$modelVersion"
         val project = setOf(
             "xsi:schemaLocation" to "$pomUrl $MAVEN_APACHE_URL/xsd/maven-$modelVersion.xsd",
             "xmlns" to pomUrl,
-            "xmlns:xsi" to "http://www.w3.org/2001/XMLSchema-instance"
+            "xmlns:xsi" to "http://www.w3.org/2001/XMLSchema-instance",
         ).joinToString(separator = " ") { (key, value) ->
             "$key=\"$value\""
         }
@@ -21,11 +21,11 @@ object MavenUtil {
             "groupId" to groupId,
             "artifactId" to artifactId,
             "version" to version,
-            "packaging" to packaging
+            "packaging" to packaging,
         ).joinToString(
             prefix = "<project $project>",
             separator = "",
-            postfix = "</project>"
+            postfix = "</project>",
         ) { (key, value) ->
             "<$key>$value</$key>"
         }

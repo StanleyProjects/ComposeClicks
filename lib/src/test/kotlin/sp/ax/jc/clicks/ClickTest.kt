@@ -29,7 +29,7 @@ internal class ClickTest {
                     .testTag(tag)
                     .onClick {
                         value = !value
-                    }
+                    },
             )
         }
         assertFalse(value)

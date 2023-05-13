@@ -2,7 +2,6 @@ package sp.ax.jc.clicks
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,7 +20,6 @@ fun Modifier.onClick(
     indication: Indication,
     block: () -> Unit,
 ): Modifier {
-    clickable {  }
     return indication(interactionSource = interactionSource, indication = indication)
         .pointerInput(null) {
             detectTapGestures(
