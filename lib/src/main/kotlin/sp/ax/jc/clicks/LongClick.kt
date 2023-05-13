@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
 
-// todo pointerInput key
 /**
  * Configure component to receive clicks via press gestures.
  * @see [Modifier.clickable]
@@ -20,12 +19,13 @@ import androidx.compose.ui.input.pointer.pointerInput
  * @since 0.1.0-3
  */
 fun Modifier.onLongClick(
+    key1: Any?,
     interactionSource: MutableInteractionSource,
     indication: Indication,
     block: () -> Unit,
 ): Modifier {
     return indication(interactionSource = interactionSource, indication = indication)
-        .pointerInput(null) {
+        .pointerInput(key1) {
             detectTapGestures(
                 onPress = { offset ->
                     val press = PressInteraction.Press(offset)
@@ -51,6 +51,7 @@ fun Modifier.onLongClick(
 fun Modifier.onLongClick(block: () -> Unit): Modifier {
     return composed {
         Modifier.onLongClick(
+            key1 = null,
             interactionSource = remember { MutableInteractionSource() },
             indication = LocalIndication.current,
             block = block,

@@ -20,12 +20,13 @@ import androidx.compose.ui.input.pointer.pointerInput
  * @since 0.1.0-3
  */
 fun Modifier.onClick(
+    key1: Any?,
     interactionSource: MutableInteractionSource,
     indication: Indication,
     block: () -> Unit,
 ): Modifier {
     return indication(interactionSource = interactionSource, indication = indication)
-        .pointerInput(null) {
+        .pointerInput(key1) {
             detectTapGestures(
                 onPress = { offset ->
                     val press = PressInteraction.Press(offset)
@@ -50,6 +51,7 @@ fun Modifier.onClick(
 fun Modifier.onClick(block: () -> Unit): Modifier {
     return composed {
         Modifier.onClick(
+            key1 = null,
             interactionSource = remember { MutableInteractionSource() },
             indication = LocalIndication.current,
             block = block,
