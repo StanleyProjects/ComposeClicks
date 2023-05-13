@@ -99,9 +99,9 @@ fun BaseVariant.checkCodeQuality() {
                 "main" -> config.setFrom(configs)
                 "test" -> {
                     val test = rootDir.resolve("buildSrc/src/main/resources/detekt/config/android/test.yml")
-                            .existing()
-                            .file()
-                            .filled()
+                        .existing()
+                        .file()
+                        .filled()
                     config.setFrom(configs + test)
                 }
                 else -> error("Type \"$type\" is not supported!")

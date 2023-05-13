@@ -26,6 +26,7 @@ internal class ClicksTest {
     fun clicksTest() {
         @Suppress("BooleanPropertyNaming")
         var click = false
+
         @Suppress("BooleanPropertyNaming")
         var longClick = false
         val tag = "clickable"
