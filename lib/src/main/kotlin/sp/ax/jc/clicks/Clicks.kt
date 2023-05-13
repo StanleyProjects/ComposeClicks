@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
 
-// todo pointerInput key
 /**
  * Configure component to receive clicks via tap and press gestures.
  * @see [Modifier.clickable]
