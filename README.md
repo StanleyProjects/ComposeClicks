@@ -12,7 +12,7 @@ Jetpack Compose clickable extensions.
 
 ### Build
 ```
-$ gradle lib:assembleSnapshotRelease
+$ gradle lib:assembleDebug
 ```
 
 ### Import
