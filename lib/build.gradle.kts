@@ -156,6 +156,52 @@ fun BaseVariant.assembleDocumentation() {
     }
 }
 
+fun BaseVariant.assemblePom() {
+    task(camelCase("assemble", name, "Pom")) {
+        doLast {
+            val target = buildDir.resolve("libs/${getOutputFileName("pom")}")
+            if (target.exists()) {
+                check(target.isFile)
+                check(target.delete())
+            } else {
+                target.parentFile?.mkdirs()
+            }
+            val text = MavenUtil.pom(
+                groupId = Maven.groupId,
+                artifactId = Maven.artifactId,
+                version = getVersion(),
+                packaging = "aar",
+            )
+            target.writeText(text)
+        }
+    }
+}
+
+fun BaseVariant.checkReadme() {
+    task(camelCase("check", name, "Readme")) {
+        doLast {
+            val badge = MarkdownUtil.image(
+                text = "version",
+                url = BadgeUtil.url(
+                    label = "version",
+                    message = getVersion(),
+                    color = "2962ff",
+                ),
+            )
+            val expected = setOf(
+                badge,
+                MarkdownUtil.url("Maven", MavenUtil.Snapshot.url(Maven, getVersion())),
+                MarkdownUtil.url("Documentation", GitHubUtil.pages(Repository.owner, Repository.name, "doc/${getVersion()}")),
+                "implementation(\"${Maven.groupId}:${Maven.artifactId}:${getVersion()}\")",
+            )
+            rootDir.resolve("README.md").check(
+                expected = expected,
+                report = buildDir.resolve("reports/analysis/readme/$name/index.html"),
+            )
+        }
+    }
+}
+
 android {
     namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
@@ -203,34 +249,18 @@ android {
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
         output.outputFileName = getOutputFileName("aar")
+        checkReadme()
+        checkCoverage()
+        checkCodeQuality()
+        checkDocumentation()
+        assembleDocumentation()
+        assemblePom()
         afterEvaluate {
-            checkCoverage()
-            checkCodeQuality()
-            checkDocumentation()
-            assembleDocumentation()
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
             tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
                 kotlinOptions.jvmTarget = Version.jvmTarget
-            }
-            task(camelCase("assemble", variant.name, "Pom")) {
-                doLast {
-                    val target = buildDir.resolve("libs/${getOutputFileName("pom")}")
-                    if (target.exists()) {
-                        check(target.isFile)
-                        check(target.delete())
-                    } else {
-                        target.parentFile?.mkdirs()
-                    }
-                    val text = MavenUtil.pom(
-                        groupId = Maven.groupId,
-                        artifactId = Maven.artifactId,
-                        version = variant.getVersion(),
-                        packaging = "aar",
-                    )
-                    target.writeText(text)
-                }
             }
         }
     }

@@ -1,3 +1,5 @@
+import java.net.URL
+
 object MavenUtil {
     private const val MAVEN_APACHE_URL = "http://maven.apache.org"
 
@@ -28,6 +30,18 @@ object MavenUtil {
             postfix = "</project>",
         ) { (key, value) ->
             "<$key>$value</$key>"
+        }
+    }
+
+    object Snapshot {
+        fun url(
+            maven: Maven,
+            version: String,
+        ): URL {
+            val host = "https://s01.oss.sonatype.org"
+            val path = "$host/content/repositories/snapshots"
+            val spec = "$path/${maven.groupId.replace('.', '/')}/${maven.artifactId}/$version"
+            return URL(spec)
         }
     }
 }
