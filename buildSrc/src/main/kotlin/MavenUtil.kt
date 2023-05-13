@@ -2,7 +2,7 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-internal object MavenUtil {
+object MavenUtil {
     private const val MAVEN_APACHE_URL = "http://maven.apache.org"
     private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
