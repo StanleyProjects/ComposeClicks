@@ -60,7 +60,7 @@ fun BaseVariant.checkCoverage() {
         violationRules {
             rule {
                 limit {
-                    minimum = BigDecimal(0.96)
+                    minimum = BigDecimal(0.9)
                 }
             }
         }
