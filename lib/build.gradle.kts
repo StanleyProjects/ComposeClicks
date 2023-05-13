@@ -256,8 +256,10 @@ android {
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
         output.outputFileName = getOutputFileName("aar")
         checkReadme()
-        checkCoverage()
-        checkCodeQuality()
+        if (buildType.name == testBuildType) {
+            checkCoverage()
+            checkCodeQuality()
+        }
         checkDocumentation()
         assembleDocumentation()
         assemblePom()
