@@ -152,16 +152,15 @@ fun BaseVariant.assembleDocumentation() {
         outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
         moduleName.set(Repository.name)
         moduleVersion.set(getVersion())
-        dokkaSourceSets {
-            create("${variant.name}Main") {
-                reportUndocumented.set(false)
-                sourceLink {
-                    val path = "src/main/kotlin"
-                    localDirectory.set(file(path))
-                    remoteUrl.set(URL("${Repository.url()}/tree/${moduleVersion.get()}/lib/$path"))
-                }
-                jdkVersion.set(Version.jvmTarget.toInt())
+        dokkaSourceSets.getByName("main") {
+            reportUndocumented.set(false)
+            sourceLink {
+                val path = "src/$name/kotlin"
+                localDirectory.set(file(path))
+                val url = GitHubUtil.url(Repository.owner, Repository.name)
+                remoteUrl.set(URL("$url/tree/${moduleVersion.get()}/lib/$path"))
             }
+            jdkVersion.set(Version.jvmTarget.toInt())
         }
     }
 }
