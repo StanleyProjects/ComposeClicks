@@ -252,6 +252,17 @@ fun BaseVariant.checkReadme() {
     }
 }
 
+fun BaseVariant.assembleSource() {
+    val variant = this
+    task<Jar>(camelCase("assemble", name, "Source")) {
+        archiveBaseName.set(Maven.artifactId)
+        archiveVersion.set(variant.getVersion())
+        archiveClassifier.set("sources")
+        val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
+        from(sourceSets)
+    }
+}
+
 android {
     namespace = "sp.ax.jc.clicks"
     compileSdk = Version.Android.compileSdk
@@ -295,6 +306,7 @@ android {
         checkDocumentation()
         assembleDocumentation()
         assemblePom()
+        assembleSource()
         assembleMetadata()
         assembleMavenMetadata()
         afterEvaluate {
