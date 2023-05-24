@@ -3,6 +3,7 @@ import sp.gx.core.Badge
 import sp.gx.core.GitHub
 import sp.gx.core.Markdown
 import sp.gx.core.Maven
+import sp.gx.core.assemble
 import sp.gx.core.camelCase
 import sp.gx.core.existing
 import sp.gx.core.file
@@ -185,23 +186,17 @@ fun assembleDocumentation(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.assemblePom() {
-    task(camelCase("assemble", name, "Pom")) {
+fun assemblePom(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "Pom")) {
         doLast {
-            val target = buildDir.resolve("libs/${getOutputFileName("pom")}")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = Maven.pom(
-                groupId = maven.group,
-                artifactId = maven.id,
-                version = getVersion(),
-                packaging = "aar",
+            buildDir.resolve("libs").resolve(variant.getOutputFileName("pom")).assemble(
+                Maven.pom(
+                    groupId = maven.group,
+                    artifactId = maven.id,
+                    version = variant.getVersion(),
+                    packaging = "aar",
+                ),
             )
-            target.writeText(text)
         }
     }
 }
@@ -325,7 +320,7 @@ android {
         checkCodeQuality(variant)
         checkDocumentation(variant)
         assembleDocumentation(variant)
-        assemblePom()
+        assemblePom(variant)
         assembleSource()
         assembleMetadata()
         assembleMavenMetadata()
