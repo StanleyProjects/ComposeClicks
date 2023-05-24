@@ -50,12 +50,9 @@ fun BaseVariant.getOutputFileName(extension: String): String {
     return "${kebabCase(rootProject.name, getVersion())}.$extension"
 }
 
-jacoco {
-    toolVersion = Version.jacoco
-}
+jacoco.toolVersion = Version.jacoco
 
-fun BaseVariant.checkCoverage() {
-    val variant = this
+fun checkCoverage(variant: BaseVariant) {
     val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
     val taskCoverageReport = task<JacocoReport>(camelCase("assemble", variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
@@ -65,9 +62,15 @@ fun BaseVariant.checkCoverage() {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/${variant.name}"))
+        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes").resolve(variant.name))
         classDirectories.setFrom(dirs)
         executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        doLast {
+            val report = buildDir.resolve("reports/jacoco/$name/html/index.html")
+            if (report.exists()) {
+                println("Coverage report: ${report.absolutePath}")
+            }
+        }
     }
     task<JacocoCoverageVerification>(camelCase("check", variant.name, "Coverage")) {
         dependsOn(taskCoverageReport)
@@ -320,7 +323,7 @@ android {
         output.outputFileName = getOutputFileName("aar")
         checkReadme()
         if (buildType.name == testBuildType) {
-            checkCoverage()
+            checkCoverage(variant)
         }
         checkCodeQuality()
         checkDocumentation()
