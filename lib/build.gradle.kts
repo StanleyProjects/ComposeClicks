@@ -265,9 +265,8 @@ fun checkReadme(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.assembleSource() {
-    val variant = this
-    task<Jar>(camelCase("assemble", name, "Source")) {
+fun assembleSource(variant: BaseVariant) {
+    task<Jar>(camelCase("assemble", variant.name, "Source")) {
         archiveBaseName.set(maven.id)
         archiveVersion.set(variant.getVersion())
         archiveClassifier.set("sources")
@@ -319,7 +318,7 @@ android {
         checkDocumentation(variant)
         assembleDocumentation(variant)
         assemblePom(variant)
-        assembleSource()
+        assembleSource(variant)
         assembleMetadata(variant)
         assembleMavenMetadata(variant)
         afterEvaluate {
