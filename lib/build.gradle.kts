@@ -11,7 +11,7 @@ import sp.gx.core.kebabCase
 import sp.gx.core.resolve
 import sp.gx.core.check
 
-version = "0.1.1"
+version = "0.2.0"
 
 val maven = Maven.Artifact(
     group = "com.github.kepocnhh",
