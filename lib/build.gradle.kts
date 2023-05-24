@@ -189,14 +189,17 @@ fun assembleDocumentation(variant: BaseVariant) {
 fun assemblePom(variant: BaseVariant) {
     task(camelCase("assemble", variant.name, "Pom")) {
         doLast {
-            buildDir.resolve("libs").resolve(variant.getOutputFileName("pom")).assemble(
-                Maven.pom(
-                    groupId = maven.group,
-                    artifactId = maven.id,
-                    version = variant.getVersion(),
-                    packaging = "aar",
-                ),
-            )
+            buildDir.resolve("maven")
+                .resolve(variant.name)
+                .resolve(variant.getOutputFileName("pom"))
+                .assemble(
+                    Maven.pom(
+                        groupId = maven.group,
+                        artifactId = maven.id,
+                        version = variant.getVersion(),
+                        packaging = "aar",
+                    ),
+                )
         }
     }
 }
