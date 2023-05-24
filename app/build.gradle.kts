@@ -1,3 +1,6 @@
+import sp.gx.core.camelCase
+import sp.gx.core.kebabCase
+
 repositories {
     google()
     mavenCentral()

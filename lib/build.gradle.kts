@@ -1,7 +1,27 @@
 import com.android.build.gradle.api.BaseVariant
-import java.net.URL
+import sp.gx.core.Badge
+import sp.gx.core.GitHub
+import sp.gx.core.Markdown
+import sp.gx.core.Maven
+import sp.gx.core.camelCase
+import sp.gx.core.existing
+import sp.gx.core.file
+import sp.gx.core.filled
+import sp.gx.core.kebabCase
+import sp.gx.core.resolve
+import sp.gx.core.check
 
 version = "0.1.1"
+
+val maven = Maven.Artifact(
+    group = "com.github.kepocnhh",
+    id = rootProject.name,
+)
+
+val gh = GitHub.Repository(
+    owner = "StanleyProjects",
+    name = rootProject.name,
+)
 
 repositories {
     google()
@@ -150,15 +170,15 @@ fun BaseVariant.assembleDocumentation() {
     val variant = this
     task<org.jetbrains.dokka.gradle.DokkaTask>(camelCase("assemble", variant.name, "Documentation")) {
         outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
-        moduleName.set(Repository.name)
+        moduleName.set(gh.name)
         moduleVersion.set(getVersion())
-        dokkaSourceSets.getByName("main") {
+        dokkaSourceSets.create(camelCase(variant.name, "main")) {
             reportUndocumented.set(false)
             sourceLink {
-                val path = "src/$name/kotlin"
+                val path = "src/main/kotlin"
                 localDirectory.set(file(path))
-                val url = GitHubUtil.url(Repository.owner, Repository.name)
-                remoteUrl.set(URL("$url/tree/${moduleVersion.get()}/lib/$path"))
+                val url = GitHub.url(gh.owner, gh.name)
+                remoteUrl.set(url.resolve("tree/${moduleVersion.get()}/lib/$path"))
             }
             jdkVersion.set(Version.jvmTarget.toInt())
         }
@@ -175,9 +195,9 @@ fun BaseVariant.assemblePom() {
             } else {
                 target.parentFile?.mkdirs()
             }
-            val text = MavenUtil.pom(
-                groupId = Maven.groupId,
-                artifactId = Maven.artifactId,
+            val text = Maven.pom(
+                groupId = maven.group,
+                artifactId = maven.id,
                 version = getVersion(),
                 packaging = "aar",
             )
@@ -198,8 +218,8 @@ fun BaseVariant.assembleMetadata() {
             }
             val text = """
                 repository:
-                 owner: '${Repository.owner}'
-                 name: '${Repository.name}'
+                 owner: '${gh.owner}'
+                 name: '${gh.name}'
                 version: '${getVersion()}'
             """.trimIndent()
             target.writeText(text)
@@ -217,9 +237,9 @@ fun BaseVariant.assembleMavenMetadata() {
             } else {
                 target.parentFile?.mkdirs()
             }
-            val text = MavenUtil.metadata(
-                groupId = Maven.groupId,
-                artifactId = Maven.artifactId,
+            val text = Maven.metadata(
+                groupId = maven.group,
+                artifactId = maven.id,
                 version = getVersion(),
             )
             target.writeText(text)
@@ -230,9 +250,9 @@ fun BaseVariant.assembleMavenMetadata() {
 fun BaseVariant.checkReadme() {
     task(camelCase("check", name, "Readme")) {
         doLast {
-            val badge = MarkdownUtil.image(
+            val badge = Markdown.image(
                 text = "version",
-                url = BadgeUtil.url(
+                url = Badge.url(
                     label = "version",
                     message = getVersion(),
                     color = "2962ff",
@@ -240,9 +260,9 @@ fun BaseVariant.checkReadme() {
             )
             val expected = setOf(
                 badge,
-                MarkdownUtil.url("Maven", MavenUtil.Snapshot.url(Maven, getVersion())),
-                MarkdownUtil.url("Documentation", GitHubUtil.pages(Repository.owner, Repository.name, "doc/${getVersion()}")),
-                "implementation(\"${Maven.groupId}:${Maven.artifactId}:${getVersion()}\")",
+                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, getVersion())),
+                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(getVersion())),
+                "implementation(\"${maven.group}:${maven.id}:${getVersion()}\")",
             )
             rootDir.resolve("README.md").check(
                 expected = expected,
@@ -255,7 +275,7 @@ fun BaseVariant.checkReadme() {
 fun BaseVariant.assembleSource() {
     val variant = this
     task<Jar>(camelCase("assemble", name, "Source")) {
-        archiveBaseName.set(Maven.artifactId)
+        archiveBaseName.set(maven.id)
         archiveVersion.set(variant.getVersion())
         archiveClassifier.set("sources")
         val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }

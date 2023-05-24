@@ -1,3 +1,5 @@
+import sp.gx.core.check
+
 buildscript {
     repositories {
         google()
