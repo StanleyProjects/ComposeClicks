@@ -204,23 +204,20 @@ fun assemblePom(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.assembleMetadata() {
-    task(camelCase("assemble", name, "Metadata")) {
+fun assembleMetadata(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "Metadata")) {
         doLast {
-            val target = buildDir.resolve("yml/metadata.yml")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = """
-                repository:
-                 owner: '${gh.owner}'
-                 name: '${gh.name}'
-                version: '${getVersion()}'
-            """.trimIndent()
-            target.writeText(text)
+            buildDir.resolve("yml")
+                .resolve(variant.name)
+                .resolve("metadata.yml")
+                .assemble(
+                    """
+                        repository:
+                         owner: '${gh.owner}'
+                         name: '${gh.name}'
+                        version: '${variant.getVersion()}'
+                    """.trimIndent(),
+                )
         }
     }
 }
@@ -325,7 +322,7 @@ android {
         assembleDocumentation(variant)
         assemblePom(variant)
         assembleSource()
-        assembleMetadata()
+        assembleMetadata(variant)
         assembleMavenMetadata()
         afterEvaluate {
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
