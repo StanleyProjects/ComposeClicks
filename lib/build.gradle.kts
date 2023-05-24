@@ -5,13 +5,13 @@ import sp.gx.core.Markdown
 import sp.gx.core.Maven
 import sp.gx.core.assemble
 import sp.gx.core.camelCase
+import sp.gx.core.check
+import sp.gx.core.colonCase
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
-import sp.gx.core.check
-import sp.gx.core.colonCase
 
 version = "0.2.0"
 
