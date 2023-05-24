@@ -138,8 +138,7 @@ fun checkCodeQuality(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.checkDocumentation() {
-    val variant = this
+fun checkDocumentation(variant: BaseVariant) {
     val configs = setOf(
         "common",
         "documentation",
@@ -325,7 +324,7 @@ android {
             checkCoverage(variant)
         }
         checkCodeQuality(variant)
-        checkDocumentation()
+        checkDocumentation(variant)
         assembleDocumentation()
         assemblePom()
         assembleSource()
