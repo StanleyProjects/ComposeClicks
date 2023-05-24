@@ -11,6 +11,7 @@ import sp.gx.core.filled
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
 import sp.gx.core.check
+import sp.gx.core.colonCase
 
 version = "0.2.0"
 
@@ -239,26 +240,26 @@ fun assembleMavenMetadata(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.checkReadme() {
-    task(camelCase("check", name, "Readme")) {
+fun checkReadme(variant: BaseVariant) {
+    task(camelCase("check", variant.name, "Readme")) {
         doLast {
             val badge = Markdown.image(
                 text = "version",
                 url = Badge.url(
                     label = "version",
-                    message = getVersion(),
+                    message = variant.getVersion(),
                     color = "2962ff",
                 ),
             )
             val expected = setOf(
                 badge,
-                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, getVersion())),
-                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(getVersion())),
-                "implementation(\"${maven.group}:${maven.id}:${getVersion()}\")",
+                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, variant.getVersion())),
+                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(variant.getVersion())),
+                "implementation(\"${colonCase(maven.group, maven.id, variant.getVersion())}\")",
             )
             rootDir.resolve("README.md").check(
                 expected = expected,
-                report = buildDir.resolve("reports/analysis/readme/$name/index.html"),
+                report = buildDir.resolve("reports/analysis/readme/${variant.name}/index.html"),
             )
         }
     }
@@ -310,7 +311,7 @@ android {
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
         output.outputFileName = getOutputFileName("aar")
-        checkReadme()
+        checkReadme(variant)
         if (buildType.name == testBuildType) {
             checkCoverage(variant)
         }
