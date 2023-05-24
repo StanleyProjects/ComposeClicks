@@ -1,7 +1,29 @@
 import com.android.build.gradle.api.BaseVariant
-import java.net.URL
+import sp.gx.core.Badge
+import sp.gx.core.GitHub
+import sp.gx.core.Markdown
+import sp.gx.core.Maven
+import sp.gx.core.assemble
+import sp.gx.core.camelCase
+import sp.gx.core.check
+import sp.gx.core.colonCase
+import sp.gx.core.existing
+import sp.gx.core.file
+import sp.gx.core.filled
+import sp.gx.core.kebabCase
+import sp.gx.core.resolve
 
-version = "0.1.1"
+version = "0.2.0"
+
+val maven = Maven.Artifact(
+    group = "com.github.kepocnhh",
+    id = rootProject.name,
+)
+
+val gh = GitHub.Repository(
+    owner = "StanleyProjects",
+    name = rootProject.name,
+)
 
 repositories {
     google()
@@ -30,12 +52,9 @@ fun BaseVariant.getOutputFileName(extension: String): String {
     return "${kebabCase(rootProject.name, getVersion())}.$extension"
 }
 
-jacoco {
-    toolVersion = Version.jacoco
-}
+jacoco.toolVersion = Version.jacoco
 
-fun BaseVariant.checkCoverage() {
-    val variant = this
+fun checkCoverage(variant: BaseVariant) {
     val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
     val taskCoverageReport = task<JacocoReport>(camelCase("assemble", variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
@@ -45,9 +64,15 @@ fun BaseVariant.checkCoverage() {
             xml.required.set(false)
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes/${variant.name}"))
+        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes").resolve(variant.name))
         classDirectories.setFrom(dirs)
         executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        doLast {
+            val report = buildDir.resolve("reports/jacoco/$name/html/index.html")
+            if (report.exists()) {
+                println("Coverage report: ${report.absolutePath}")
+            }
+        }
     }
     task<JacocoCoverageVerification>(camelCase("check", variant.name, "Coverage")) {
         dependsOn(taskCoverageReport)
@@ -63,8 +88,7 @@ fun BaseVariant.checkCoverage() {
     }
 }
 
-fun BaseVariant.checkCodeQuality() {
-    val variant = this
+fun checkCodeQuality(variant: BaseVariant) {
     val configs = setOf(
         "comments",
         "common",
@@ -116,8 +140,7 @@ fun BaseVariant.checkCodeQuality() {
     }
 }
 
-fun BaseVariant.checkDocumentation() {
-    val variant = this
+fun checkDocumentation(variant: BaseVariant) {
     val configs = setOf(
         "common",
         "documentation",
@@ -146,116 +169,105 @@ fun BaseVariant.checkDocumentation() {
     }
 }
 
-fun BaseVariant.assembleDocumentation() {
-    val variant = this
+fun assembleDocumentation(variant: BaseVariant) {
     task<org.jetbrains.dokka.gradle.DokkaTask>(camelCase("assemble", variant.name, "Documentation")) {
-        outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
-        moduleName.set(Repository.name)
-        moduleVersion.set(getVersion())
-        dokkaSourceSets.getByName("main") {
+        outputDirectory.set(buildDir.resolve("documentation").resolve(variant.name))
+        moduleName.set(gh.name)
+        moduleVersion.set(variant.getVersion())
+        dokkaSourceSets.create(camelCase(variant.name, "main")) {
             reportUndocumented.set(false)
             sourceLink {
-                val path = "src/$name/kotlin"
+                val path = "src/main/kotlin"
                 localDirectory.set(file(path))
-                val url = GitHubUtil.url(Repository.owner, Repository.name)
-                remoteUrl.set(URL("$url/tree/${moduleVersion.get()}/lib/$path"))
+                val url = GitHub.url(gh.owner, gh.name)
+                remoteUrl.set(url.resolve("tree/${moduleVersion.get()}/lib/$path"))
             }
             jdkVersion.set(Version.jvmTarget.toInt())
         }
     }
 }
 
-fun BaseVariant.assemblePom() {
-    task(camelCase("assemble", name, "Pom")) {
+fun assemblePom(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "Pom")) {
         doLast {
-            val target = buildDir.resolve("libs/${getOutputFileName("pom")}")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = MavenUtil.pom(
-                groupId = Maven.groupId,
-                artifactId = Maven.artifactId,
-                version = getVersion(),
-                packaging = "aar",
-            )
-            target.writeText(text)
+            buildDir.resolve("maven")
+                .resolve(variant.name)
+                .resolve(variant.getOutputFileName("pom"))
+                .assemble(
+                    Maven.pom(
+                        groupId = maven.group,
+                        artifactId = maven.id,
+                        version = variant.getVersion(),
+                        packaging = "aar",
+                    ),
+                )
         }
     }
 }
 
-fun BaseVariant.assembleMetadata() {
-    task(camelCase("assemble", name, "Metadata")) {
+fun assembleMetadata(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "Metadata")) {
         doLast {
-            val target = buildDir.resolve("yml/metadata.yml")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = """
-                repository:
-                 owner: '${Repository.owner}'
-                 name: '${Repository.name}'
-                version: '${getVersion()}'
-            """.trimIndent()
-            target.writeText(text)
+            buildDir.resolve("yml")
+                .resolve(variant.name)
+                .resolve("metadata.yml")
+                .assemble(
+                    """
+                        repository:
+                         owner: '${gh.owner}'
+                         name: '${gh.name}'
+                        version: '${variant.getVersion()}'
+                    """.trimIndent(),
+                )
         }
     }
 }
 
-fun BaseVariant.assembleMavenMetadata() {
-    task(camelCase("assemble", name, "MavenMetadata")) {
+fun assembleMavenMetadata(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "MavenMetadata")) {
         doLast {
-            val target = buildDir.resolve("xml/maven-metadata.xml")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = MavenUtil.metadata(
-                groupId = Maven.groupId,
-                artifactId = Maven.artifactId,
-                version = getVersion(),
-            )
-            target.writeText(text)
+            buildDir.resolve("maven")
+                .resolve(variant.name)
+                .resolve("maven-metadata.xml")
+                .assemble(
+                    Maven.metadata(
+                        groupId = maven.group,
+                        artifactId = maven.id,
+                        version = variant.getVersion(),
+                    ),
+                )
         }
     }
 }
 
-fun BaseVariant.checkReadme() {
-    task(camelCase("check", name, "Readme")) {
+fun checkReadme(variant: BaseVariant) {
+    task(camelCase("check", variant.name, "Readme")) {
         doLast {
-            val badge = MarkdownUtil.image(
+            val badge = Markdown.image(
                 text = "version",
-                url = BadgeUtil.url(
+                url = Badge.url(
                     label = "version",
-                    message = getVersion(),
+                    message = variant.getVersion(),
                     color = "2962ff",
                 ),
             )
             val expected = setOf(
                 badge,
-                MarkdownUtil.url("Maven", MavenUtil.Snapshot.url(Maven, getVersion())),
-                MarkdownUtil.url("Documentation", GitHubUtil.pages(Repository.owner, Repository.name, "doc/${getVersion()}")),
-                "implementation(\"${Maven.groupId}:${Maven.artifactId}:${getVersion()}\")",
+                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, variant.getVersion())),
+                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(variant.getVersion())),
+                "implementation(\"${colonCase(maven.group, maven.id, variant.getVersion())}\")",
             )
             rootDir.resolve("README.md").check(
                 expected = expected,
-                report = buildDir.resolve("reports/analysis/readme/$name/index.html"),
+                report = buildDir.resolve("reports/analysis/readme/${variant.name}/index.html"),
             )
         }
     }
 }
 
-fun BaseVariant.assembleSource() {
-    val variant = this
-    task<Jar>(camelCase("assemble", name, "Source")) {
-        archiveBaseName.set(Maven.artifactId)
+fun assembleSource(variant: BaseVariant) {
+    task<Jar>(camelCase("assemble", variant.name, "Source")) {
+        archiveBaseName.set(maven.id)
         archiveVersion.set(variant.getVersion())
         archiveClassifier.set("sources")
         val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
@@ -298,23 +310,26 @@ android {
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
         output.outputFileName = getOutputFileName("aar")
-        checkReadme()
+        checkReadme(variant)
         if (buildType.name == testBuildType) {
-            checkCoverage()
+            checkCoverage(variant)
         }
-        checkCodeQuality()
-        checkDocumentation()
-        assembleDocumentation()
-        assemblePom()
-        assembleSource()
-        assembleMetadata()
-        assembleMavenMetadata()
+        checkCodeQuality(variant)
+        checkDocumentation(variant)
+        assembleDocumentation(variant)
+        assemblePom(variant)
+        assembleSource(variant)
+        assembleMetadata(variant)
+        assembleMavenMetadata(variant)
         afterEvaluate {
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
             tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
-                kotlinOptions.jvmTarget = Version.jvmTarget
+                kotlinOptions {
+                    jvmTarget = Version.jvmTarget
+                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
+                }
             }
         }
     }
