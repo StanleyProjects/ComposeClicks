@@ -86,8 +86,7 @@ fun checkCoverage(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.checkCodeQuality() {
-    val variant = this
+fun checkCodeQuality(variant: BaseVariant) {
     val configs = setOf(
         "comments",
         "common",
@@ -325,7 +324,7 @@ android {
         if (buildType.name == testBuildType) {
             checkCoverage(variant)
         }
-        checkCodeQuality()
+        checkCodeQuality(variant)
         checkDocumentation()
         assembleDocumentation()
         assemblePom()
