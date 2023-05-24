@@ -326,7 +326,10 @@ android {
                 targetCompatibility = Version.jvmTarget
             }
             tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
-                kotlinOptions.jvmTarget = Version.jvmTarget
+                kotlinOptions {
+                    jvmTarget = Version.jvmTarget
+                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
+                }
             }
         }
     }
