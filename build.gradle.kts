@@ -13,7 +13,7 @@ buildscript {
 }
 
 task<Delete>("clean") {
-    delete = setOf(buildDir, "buildSrc/build")
+    delete = setOf(buildDir, file("buildSrc").resolve("build"))
 }
 
 repositories.mavenCentral()
