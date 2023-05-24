@@ -222,22 +222,19 @@ fun assembleMetadata(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.assembleMavenMetadata() {
-    task(camelCase("assemble", name, "MavenMetadata")) {
+fun assembleMavenMetadata(variant: BaseVariant) {
+    task(camelCase("assemble", variant.name, "MavenMetadata")) {
         doLast {
-            val target = buildDir.resolve("xml/maven-metadata.xml")
-            if (target.exists()) {
-                check(target.isFile)
-                check(target.delete())
-            } else {
-                target.parentFile?.mkdirs()
-            }
-            val text = Maven.metadata(
-                groupId = maven.group,
-                artifactId = maven.id,
-                version = getVersion(),
-            )
-            target.writeText(text)
+            buildDir.resolve("maven")
+                .resolve(variant.name)
+                .resolve("maven-metadata.xml")
+                .assemble(
+                    Maven.metadata(
+                        groupId = maven.group,
+                        artifactId = maven.id,
+                        version = variant.getVersion(),
+                    ),
+                )
         }
     }
 }
@@ -323,7 +320,7 @@ android {
         assemblePom(variant)
         assembleSource()
         assembleMetadata(variant)
-        assembleMavenMetadata()
+        assembleMavenMetadata(variant)
         afterEvaluate {
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
