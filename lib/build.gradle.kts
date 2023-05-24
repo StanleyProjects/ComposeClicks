@@ -167,12 +167,11 @@ fun checkDocumentation(variant: BaseVariant) {
     }
 }
 
-fun BaseVariant.assembleDocumentation() {
-    val variant = this
+fun assembleDocumentation(variant: BaseVariant) {
     task<org.jetbrains.dokka.gradle.DokkaTask>(camelCase("assemble", variant.name, "Documentation")) {
-        outputDirectory.set(buildDir.resolve("documentation/${variant.name}"))
+        outputDirectory.set(buildDir.resolve("documentation").resolve(variant.name))
         moduleName.set(gh.name)
-        moduleVersion.set(getVersion())
+        moduleVersion.set(variant.getVersion())
         dokkaSourceSets.create(camelCase(variant.name, "main")) {
             reportUndocumented.set(false)
             sourceLink {
@@ -325,7 +324,7 @@ android {
         }
         checkCodeQuality(variant)
         checkDocumentation(variant)
-        assembleDocumentation()
+        assembleDocumentation(variant)
         assemblePom()
         assembleSource()
         assembleMetadata()
