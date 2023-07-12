@@ -13,10 +13,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 
 /**
  * Configure component to receive clicks via tap and press gestures.
- * @see [Modifier.clickable]
- * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.1.0-3
+ * @since 0.2.1
  */
 fun Modifier.clicks(
     key1: Any?,
