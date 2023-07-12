@@ -60,17 +60,54 @@ internal class MainActivity : AppCompatActivity() {
                         .weight(1f),
                 ) {
                     itemsIndexed(data.value) { index, it ->
-                        BasicText(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .onClick {
-                                    context.showToast("$index] $it")
-                                }
-                                .wrapContentHeight(),
-                            text = it,
-                            style = style,
-                        )
+                        Row(Modifier.fillMaxWidth().height(56.dp)) {
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
+                                    .wrapContentHeight(),
+                                text = it,
+                                style = style,
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
+                                    .onClick {
+                                        context.showToast("on click: $index] $it")
+                                    }
+                                    .wrapContentHeight(),
+                                text = "click",
+                                style = style,
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
+                                    .onLongClick {
+                                        context.showToast("on long click: $index] $it")
+                                    }
+                                    .wrapContentHeight(),
+                                text = "long click",
+                                style = style,
+                            )
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
+                                    .clicks(
+                                        onClick = {
+                                            context.showToast("on click: $index] $it")
+                                        },
+                                        onLongClick = {
+                                            context.showToast("on long click: $index] $it")
+                                        }
+                                    )
+                                    .wrapContentHeight(),
+                                text = "clicks",
+                                style = style,
+                            )
+                        }
                     }
                 }
                 Column(
@@ -86,7 +123,9 @@ internal class MainActivity : AppCompatActivity() {
                                 .fillMaxHeight()
                                 .weight(1f)
                                 .clickable {
-                                    data.value = data.value + System.currentTimeMillis().toString()
+                                    data.value = data.value + System
+                                        .currentTimeMillis()
+                                        .toString()
                                 }
                                 .wrapContentHeight(),
                             text = "+",
