@@ -7,9 +7,11 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.debugInspectorInfo
 
 /**
  * Configure component to receive clicks via tap and press gestures.
@@ -23,24 +25,38 @@ fun Modifier.clicks(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ): Modifier {
-    return indication(interactionSource = interactionSource, indication = indication)
-        .pointerInput(key1) {
-            detectTapGestures(
-                onPress = { offset ->
-                    val press = PressInteraction.Press(offset)
-                    interactionSource.emit(press)
-                    @Suppress("IgnoredReturnValue")
-                    tryAwaitRelease()
-                    interactionSource.emit(PressInteraction.Release(press))
-                },
-                onLongPress = {
-                    onLongClick()
-                },
-                onTap = {
-                    onClick()
-                },
-            )
+    return composed(
+        inspectorInfo = debugInspectorInfo {
+            name = "clicks"
+            properties["key1"] = key1
+            properties["onClick"] = onClick
+            properties["onLongClick"] = onLongClick
+            properties["indication"] = indication
+            properties["interactionSource"] = interactionSource
+        },
+        factory = {
+            val onClickState = rememberUpdatedState(onClick)
+            val onLongClickState = rememberUpdatedState(onLongClick)
+            Modifier.indication(interactionSource = interactionSource, indication = indication)
+                .pointerInput(key1) {
+                    detectTapGestures(
+                        onPress = { offset ->
+                            val press = PressInteraction.Press(offset)
+                            interactionSource.emit(press)
+                            @Suppress("IgnoredReturnValue")
+                            tryAwaitRelease()
+                            interactionSource.emit(PressInteraction.Release(press))
+                        },
+                        onLongPress = {
+                            onLongClickState.value()
+                        },
+                        onTap = {
+                            onClickState.value()
+                        },
+                    )
+                }
         }
+    )
 }
 
 /**
