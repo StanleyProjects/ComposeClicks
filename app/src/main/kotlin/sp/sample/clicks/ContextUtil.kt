@@ -3,6 +3,6 @@ package sp.sample.clicks
 import android.content.Context
 import android.widget.Toast
 
-internal fun Context.showToast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+internal fun Context.showToast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, message, duration).show()
 }
