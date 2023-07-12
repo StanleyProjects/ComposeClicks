@@ -49,7 +49,7 @@ fun Modifier.onClick(
                         },
                     )
                 }
-        }
+        },
     )
 }
 

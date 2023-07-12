@@ -55,7 +55,7 @@ fun Modifier.clicks(
                         },
                     )
                 }
-        }
+        },
     )
 }
 
