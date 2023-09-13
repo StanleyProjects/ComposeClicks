@@ -29,13 +29,6 @@ import sp.ax.jc.clicks.clicks
 import sp.ax.jc.clicks.onClick
 import sp.ax.jc.clicks.onLongClick
 
-private fun Modifier.button(block: Modifier.() -> Modifier): Modifier {
-    return fillMaxWidth()
-        .height(56.dp)
-        .block()
-        .wrapContentHeight()
-}
-
 @Composable
 private fun Buttons(
     color: Color,
@@ -86,9 +79,10 @@ internal class MainActivity : AppCompatActivity() {
                 ) {
                     itemsIndexed(data.value) { index, it ->
                         Row(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp)) {
+                                .height(56.dp),
+                        ) {
                             BasicText(
                                 modifier = Modifier
                                     .fillMaxHeight()
@@ -112,17 +106,19 @@ internal class MainActivity : AppCompatActivity() {
                             BasicText(
                                 modifier = Modifier
                                     .fillMaxHeight()
+                                    .background(Color.Yellow)
                                     .weight(1f)
                                     .onLongClick {
                                         context.showToast("on long click: $index] $it")
                                     }
                                     .wrapContentHeight(),
                                 text = "long click",
-                                style = style,
+                                style = style.copy(Color.Black),
                             )
                             BasicText(
                                 modifier = Modifier
                                     .fillMaxHeight()
+                                    .background(Color.Cyan)
                                     .weight(1f)
                                     .clicks(
                                         onClick = {
@@ -134,7 +130,7 @@ internal class MainActivity : AppCompatActivity() {
                                     )
                                     .wrapContentHeight(),
                                 text = "clicks",
-                                style = style,
+                                style = style.copy(Color.Black),
                             )
                         }
                     }
@@ -177,23 +173,6 @@ internal class MainActivity : AppCompatActivity() {
                         )
                     }
                     Buttons(
-                        color = Color.Yellow,
-                        textStyle = TextStyle(
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                        ),
-                        "long click" to {
-                            onLongClick(enabled = true) {
-                                context.showToast("on enabled long click...")
-                            }
-                        },
-                        "long click disabled" to {
-                            onLongClick(enabled = false) {
-                                context.showToast("on disabled long click...")
-                            }
-                        }
-                    )
-                    Buttons(
                         color = Color.White,
                         textStyle = TextStyle(
                             textAlign = TextAlign.Center,
@@ -206,23 +185,55 @@ internal class MainActivity : AppCompatActivity() {
                         },
                         "click disabled" to {
                             onClick(enabled = false) {
-                                context.showToast("on disabled click...")
+                                error("Disabled!")
                             }
                         }
                     )
-                    BasicText(
-                        modifier = Modifier.button {
+                    Buttons(
+                        color = Color.Yellow,
+                        textStyle = TextStyle(
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                        ),
+                        "long click" to {
+                            onLongClick(enabled = true) {
+                                context.showToast("on enabled long click...")
+                            }
+                        },
+                        "long click disabled" to {
+                            onLongClick(enabled = false) {
+                                error("Disabled!")
+                            }
+                        }
+                    )
+                    Buttons(
+                        color = Color.Cyan,
+                        textStyle = TextStyle(
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                        ),
+                        "clicks" to {
                             clicks(
+                                enabled = true,
                                 onClick = {
-                                    context.showToast("on click...")
+                                    context.showToast("on enabled clicks click...")
                                 },
                                 onLongClick = {
-                                    context.showToast("on long click...")
+                                    context.showToast("on enabled clicks long click...")
                                 },
                             )
                         },
-                        text = "clicks",
-                        style = style,
+                        "clicks disabled" to {
+                            clicks(
+                                enabled = false,
+                                onClick = {
+                                    error("Disabled!")
+                                },
+                                onLongClick = {
+                                    error("Disabled!")
+                                },
+                            )
+                        }
                     )
                 }
             }
