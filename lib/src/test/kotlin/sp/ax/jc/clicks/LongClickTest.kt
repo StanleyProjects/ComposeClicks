@@ -41,7 +41,7 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickEnabledAssert(value = value, tag = tag)
+        onLongClickEnabledAssert(value = value, tag = tag)
     }
 
     @Test
@@ -62,7 +62,7 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickEnabledAssert(value = value, tag = tag)
+        onLongClickEnabledAssert(value = value, tag = tag)
     }
 
     @Test
@@ -83,7 +83,7 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickDisabledAssert(value = value, tag = tag)
+        onLongClickDisabledAssert(value = value, tag = tag)
     }
 
     @Test
@@ -100,7 +100,7 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickEnabledAssert(value = value, tag = tag)
+        onLongClickEnabledAssert(value = value, tag = tag)
     }
 
     @Test
@@ -117,7 +117,7 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickEnabledAssert(value = value, tag = tag)
+        onLongClickEnabledAssert(value = value, tag = tag)
     }
 
     @Test
@@ -134,10 +134,10 @@ internal class LongClickTest {
                     },
             )
         }
-        onClickDisabledAssert(value = value, tag = tag)
+        onLongClickDisabledAssert(value = value, tag = tag)
     }
 
-    private fun onClickEnabledAssert(
+    private fun onLongClickEnabledAssert(
         value: AtomicBoolean,
         tag: String,
     ) {
@@ -154,7 +154,7 @@ internal class LongClickTest {
         assertFalse(value.get())
     }
 
-    private fun onClickDisabledAssert(
+    private fun onLongClickDisabledAssert(
         value: AtomicBoolean,
         tag: String,
     ) {
