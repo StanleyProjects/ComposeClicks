@@ -113,7 +113,7 @@ internal class MainActivity : AppCompatActivity() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(2f),
                 ) {
                     Row(modifier = Modifier
                         .fillMaxWidth()
@@ -175,6 +175,24 @@ internal class MainActivity : AppCompatActivity() {
                             )
                         },
                         text = "clicks",
+                        style = style,
+                    )
+                    BasicText(
+                        modifier = Modifier.button {
+                            onClick(enabled = true) {
+                                context.showToast("on enabled click...")
+                            }
+                        },
+                        text = "enabled",
+                        style = style,
+                    )
+                    BasicText(
+                        modifier = Modifier.button {
+                            onClick(enabled = false) {
+                                error("Impossible!")
+                            }
+                        },
+                        text = "disabled",
                         style = style,
                     )
                 }
