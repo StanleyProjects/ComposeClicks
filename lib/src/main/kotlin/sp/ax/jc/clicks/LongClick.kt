@@ -15,11 +15,12 @@ import androidx.compose.ui.platform.debugInspectorInfo
 
 /**
  * Configure component to receive clicks via press gestures.
+ * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.1
+ * @since 0.2.2
  */
 fun Modifier.onLongClick(
-    key1: Any?,
+    enabled: Boolean = true,
     interactionSource: MutableInteractionSource,
     indication: Indication,
     block: () -> Unit,
@@ -27,7 +28,7 @@ fun Modifier.onLongClick(
     return composed(
         inspectorInfo = debugInspectorInfo {
             name = "onLongClick"
-            properties["key1"] = key1
+            properties["enabled"] = enabled
             properties["block"] = block
             properties["indication"] = indication
             properties["interactionSource"] = interactionSource
@@ -35,17 +36,19 @@ fun Modifier.onLongClick(
         factory = {
             val onClickState = rememberUpdatedState(block)
             Modifier.indication(interactionSource = interactionSource, indication = indication)
-                .pointerInput(key1) {
+                .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
-                            val press = PressInteraction.Press(offset)
-                            interactionSource.emit(press)
-                            @Suppress("IgnoredReturnValue")
-                            tryAwaitRelease()
-                            interactionSource.emit(PressInteraction.Release(press))
+                            if (enabled) {
+                                val press = PressInteraction.Press(offset)
+                                interactionSource.emit(press)
+                                @Suppress("IgnoredReturnValue")
+                                tryAwaitRelease()
+                                interactionSource.emit(PressInteraction.Release(press))
+                            }
                         },
                         onLongPress = {
-                            onClickState.value()
+                            if (enabled) onClickState.value()
                         },
                     )
                 }
@@ -55,15 +58,16 @@ fun Modifier.onLongClick(
 
 /**
  * Configure component to receive clicks via press gestures with default [MutableInteractionSource] and [Indication].
- * @see [Modifier.clickable]
- * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.1.0-3
+ * @since 0.2.2
  */
-fun Modifier.onLongClick(block: () -> Unit): Modifier {
+fun Modifier.onLongClick(
+    enabled: Boolean = true,
+    block: () -> Unit,
+): Modifier {
     return composed {
         Modifier.onLongClick(
-            key1 = null,
+            enabled = enabled,
             interactionSource = remember { MutableInteractionSource() },
             indication = LocalIndication.current,
             block = block,
