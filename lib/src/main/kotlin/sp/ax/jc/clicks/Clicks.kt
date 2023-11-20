@@ -5,9 +5,6 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -49,11 +46,13 @@ fun Modifier.clicks(
                 .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
-                            if (enabled) onPress(
-                                offset = offset,
-                                lastPressState = lastPressState,
-                                interactionSource = interactionSource,
-                            )
+                            if (enabled) {
+                                onPress(
+                                    offset = offset,
+                                    lastPressState = lastPressState,
+                                    interactionSource = interactionSource,
+                                )
+                            }
                         },
                         onLongPress = {
                             if (enabled) onLongClickState.value()
