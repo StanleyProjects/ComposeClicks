@@ -1,0 +1,8 @@
+# 2023/11/04
+
+style:
+  active: true
+  ForbiddenComment:
+    active: true
+    comments: []
+    allowedPatterns: ''

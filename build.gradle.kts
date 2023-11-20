@@ -7,13 +7,13 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.4.2")
+        classpath("com.android.tools.build:gradle:8.1.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Version.kotlin}")
     }
 }
 
 task<Delete>("clean") {
-    delete = setOf(buildDir, file("buildSrc").resolve("build"))
+    delete = setOf(layout.buildDirectory.get(), "buildSrc/build")
 }
 
 repositories.mavenCentral()
@@ -30,9 +30,12 @@ dependencies {
 
 task<JavaExec>("checkCodeStyle") {
     classpath = ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
+    mainClass = "com.pinterest.ktlint.Main"
     val reporter = "html"
-    val output = buildDir.resolve("reports/analysis/code/style/html/index.html")
+    val output = layout.buildDirectory.get()
+        .dir("reports/analysis/code/style/html")
+        .file("index.html")
+        .asFile
     args(
         "build.gradle.kts",
         "settings.gradle.kts",
@@ -47,9 +50,15 @@ task<JavaExec>("checkCodeStyle") {
 
 task("checkLicense") {
     doLast {
+        val author = "Stanley Wintergreen" // todo
+        val report = layout.buildDirectory.get()
+            .dir("reports/analysis/license")
+            .file("index.html")
+            .asFile
         rootDir.resolve("LICENSE").check(
-            expected = emptySet(), // todo author
-            report = buildDir.resolve("reports/analysis/license/index.html"),
+            expected = emptySet(),
+            regexes = setOf("^Copyright 2\\d{3} $author${'$'}".toRegex()),
+            report = report,
         )
     }
 }

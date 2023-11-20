@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.BasicText
@@ -187,7 +188,7 @@ internal class MainActivity : AppCompatActivity() {
                             onClick(enabled = false) {
                                 error("Disabled!")
                             }
-                        }
+                        },
                     )
                     Buttons(
                         color = Color.Yellow,
@@ -204,7 +205,7 @@ internal class MainActivity : AppCompatActivity() {
                             onLongClick(enabled = false) {
                                 error("Disabled!")
                             }
-                        }
+                        },
                     )
                     Buttons(
                         color = Color.Cyan,
@@ -233,8 +234,88 @@ internal class MainActivity : AppCompatActivity() {
                                     error("Disabled!")
                                 },
                             )
-                        }
+                        },
                     )
+                    val textState = remember { mutableStateOf("") }
+                    val enabled = textState.value.length < 8
+                    BasicText(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp)
+                            .background(Color.White)
+                            .wrapContentHeight()
+                            .padding(start = 8.dp),
+                        text = textState.value,
+                        style = TextStyle(
+                            color = Color.Black,
+                        ),
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp)
+                            .background(Color.White),
+                    ) {
+                        BasicText(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                                .wrapContentSize(),
+                            text = textState.value.length.toString(),
+                            style = TextStyle(
+                                color = Color.Black,
+                            ),
+                        )
+                        "qwerty".toCharArray().forEach { char ->
+                            BasicText(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f)
+//                                    .clicks(
+//                                        enabled = enabled,
+//                                        onClick = {
+//                                            textState.value += char
+//                                        },
+//                                        onLongClick = {
+//                                            textState.value += char.uppercase()
+//                                        },
+//                                    )
+//                                    .onClick(
+//                                        enabled = enabled,
+//                                        block = {
+//                                            textState.value += char
+//                                        },
+//                                    )
+                                    .onLongClick(
+                                        enabled = enabled,
+                                        block = {
+                                            textState.value += char
+                                        },
+                                    )
+                                    .wrapContentSize(),
+                                text = char.toString(),
+                                style = TextStyle(
+                                    color = Color.Black,
+                                ),
+                            )
+                        }
+                        BasicText(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                                .clickable(enabled = true) {
+                                    val value = textState.value
+                                    if (value.isNotEmpty()) {
+                                        textState.value = value.substring(0, value.lastIndex)
+                                    }
+                                }
+                                .wrapContentSize(),
+                            text = "DEL",
+                            style = TextStyle(
+                                color = Color.Black,
+                            ),
+                        )
+                    }
                 }
             }
         }

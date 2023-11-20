@@ -1,9 +1,17 @@
-# 2023/03/22
+# 2023/10/27
 
 style:
   active: true
   AlsoCouldBeApply:
     active: false
+  BracesOnIfStatements:
+    active: true
+    singleLine: 'consistent'
+    multiLine: 'always'
+  BracesOnWhenStatements:
+    active: true
+    singleLine: 'consistent'
+    multiLine: 'necessary'
   CanBeNonNullable:
     active: true
   CascadingCallWrapping:
@@ -21,6 +29,10 @@ style:
   DestructuringDeclarationWithTooManyEntries:
     active: true
     maxDestructuringEntries: 3
+  DoubleNegativeLambda:
+    active: true
+    negativeFunctions: ['takeUnless', 'none']
+    negativeFunctionNameParts: ['not', 'non']
   EqualsNullCall:
     active: true
   EqualsOnSignatureLine:
@@ -31,11 +43,29 @@ style:
     active: true
   ExpressionBodySyntax:
     active: false
+  ForbiddenAnnotation:
+    active: true
+    annotations: [
+      'java.lang.SuppressWarnings',
+      'java.lang.Deprecated',
+      'java.lang.annotation.Documented',
+      'java.lang.annotation.Target',
+      'java.lang.annotation.Retention',
+      'java.lang.annotation.Repeatable',
+      'java.lang.annotation.Inherited'
+    ]
   ForbiddenComment:
     active: true
-    values: ['todo']
+    comments:
+      - reason: 'Forbidden FIXME todo marker in comment, please fix the problem.'
+        value: 'FIXME:'
+      - reason: 'Forbidden STOPSHIP todo marker in comment, please address the problem before shipping the code.'
+        value: 'STOPSHIP:'
+      - reason: 'Forbidden TODO todo marker in comment, please do the changes.'
+        value: 'TODO:'
+      - reason: 'Forbidden "todo" marker in comment, please do the changes.'
+        value: 'todo'
     allowedPatterns: ''
-    customMessage: ''
   ForbiddenImport:
     active: true
     imports: []
@@ -70,18 +100,17 @@ style:
     ignoreEnums: false
     ignoreRanges: false
     ignoreExtensionFunctions: false
-  MandatoryBracesIfStatements:
-    active: true
   MandatoryBracesLoops:
     active: true
   MaxChainedCallsOnSameLine:
-    active: false
+    active: true
+    maxChainedCalls: 5
   MaxLineLength:
     active: true
     maxLineLength: 120
     excludePackageStatements: false
     excludeImportStatements: false
-    excludeCommentStatements: true
+    excludeCommentStatements: true # docs
     excludeRawStrings: false
   MayBeConst:
     active: true
@@ -92,6 +121,7 @@ style:
   MultilineRawStringIndentation:
     active: true
     indentSize: 4
+    trimmingMethods: ['trimIndent', 'trimMargin']
   NestedClassesVisibility:
     active: true
   NewLineAtEndOfFile:
@@ -105,8 +135,6 @@ style:
   OptionalAbstractKeyword:
     active: true
   OptionalUnit:
-    active: true
-  OptionalWhenBraces:
     active: true
   PreferToOverPairSyntax:
     active: true
@@ -131,6 +159,10 @@ style:
     active: true
   SpacingBetweenPackageAndImports:
     active: true
+  StringShouldBeRawString:
+    active: true
+    maxEscapedCharacterCount: 2
+    ignoredCharacters: []
   ThrowsCount:
     active: true
     max: 2
@@ -151,6 +183,8 @@ style:
     active: true
   UnnecessaryBackticks:
     active: true
+  UnnecessaryBracesAroundTrailingLambda:
+    active: true
   UnnecessaryFilter:
     active: true
   UnnecessaryInheritance:
@@ -165,11 +199,17 @@ style:
     active: true
   UnusedImports:
     active: true
+  UnusedParameter:
+    active: true
+    allowedNames: '_|ignored'
   UnusedPrivateClass:
     active: true
   UnusedPrivateMember:
     active: true
     allowedNames: ''
+  UnusedPrivateProperty:
+    active: true
+    allowedNames: '_|ignored'
   UseAnyOrNoneInsteadOfFind:
     active: true
   UseArrayLiteralsInAnnotations:
@@ -188,6 +228,8 @@ style:
   UseIfInsteadOfWhen:
     active: true
   UseIsNullOrEmpty:
+    active: true
+  UseLet:
     active: true
   UseOrEmpty:
     active: true
