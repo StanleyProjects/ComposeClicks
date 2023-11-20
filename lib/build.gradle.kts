@@ -1,4 +1,5 @@
 import com.android.build.gradle.api.BaseVariant
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import sp.gx.core.Badge
 import sp.gx.core.GitHub
 import sp.gx.core.Markdown
@@ -55,20 +56,34 @@ fun BaseVariant.getOutputFileName(extension: String): String {
 jacoco.toolVersion = Version.jacoco
 
 fun checkCoverage(variant: BaseVariant) {
-    val taskUnitTest = tasks.getByName<Test>(camelCase("test", variant.name, "UnitTest"))
+    val taskUnitTest = camelCase("test", variant.name, "UnitTest")
+    val executionData = layout.buildDirectory.get()
+        .dir("outputs/unit_test_code_coverage/${variant.name}UnitTest")
+        .file("$taskUnitTest.exec")
+    tasks.getByName<Test>(taskUnitTest) {
+        doLast {
+            executionData.existing().file().filled()
+        }
+    }
     val taskCoverageReport = task<JacocoReport>(camelCase("assemble", variant.name, "CoverageReport")) {
         dependsOn(taskUnitTest)
         reports {
-            csv.required.set(false)
-            html.required.set(true)
-            xml.required.set(false)
+            csv.required = false
+            html.required = true
+            xml.required = false
         }
         sourceDirectories.setFrom(file("src/main/kotlin"))
-        val dirs = fileTree(buildDir.resolve("tmp/kotlin-classes").resolve(variant.name))
+        val dirs = layout.buildDirectory.get()
+            .dir("tmp/kotlin-classes")
+            .dir(variant.name)
+            .let(::fileTree)
         classDirectories.setFrom(dirs)
-        executionData(buildDir.resolve("outputs/unit_test_code_coverage/${variant.name}UnitTest/${taskUnitTest.name}.exec"))
+        executionData(executionData)
         doLast {
-            val report = buildDir.resolve("reports/jacoco/$name/html/index.html")
+            val report = layout.buildDirectory.get()
+                .dir("reports/jacoco/$name/html")
+                .file("index.html")
+                .asFile
             if (report.exists()) {
                 println("Coverage report: ${report.absolutePath}")
             }
@@ -116,26 +131,39 @@ fun checkCodeQuality(variant: BaseVariant) {
             when (type) {
                 "main" -> config.setFrom(configs)
                 "test" -> {
-                    val test = rootDir.resolve("buildSrc/src/main/resources/detekt/config/android/test.yml")
-                        .existing()
-                        .file()
-                        .filled()
-                    config.setFrom(configs + test)
+                    val tests = setOf(
+                        "test",
+                        "android/test",
+                    ).map { config ->
+                        rootDir.resolve("buildSrc/src/main/resources/detekt/config/$config.yml")
+                            .existing()
+                            .file()
+                            .filled()
+                    }
+                    config.setFrom(configs + tests)
                 }
                 else -> error("Type \"$type\" is not supported!")
             }
+            val report = layout.buildDirectory.get()
+                .dir("reports/analysis/code/quality")
+                .dir("${variant.name}/$type/html")
+                .file("index.html")
+                .asFile
             reports {
                 html {
-                    required.set(true)
-                    outputLocation.set(buildDir.resolve("reports/analysis/code/quality/${variant.name}/$type/html/index.html"))
+                    required = true
+                    outputLocation = report
                 }
-                md.required.set(false)
-                sarif.required.set(false)
-                txt.required.set(false)
-                xml.required.set(false)
+                md.required = false
+                sarif.required = false
+                txt.required = false
+                xml.required = false
             }
             val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name, postfix))
             classpath.setFrom(detektTask.classpath)
+            doFirst {
+                println("Analysis report: ${report.absolutePath}")
+            }
         }
     }
 }
@@ -154,35 +182,50 @@ fun checkDocumentation(variant: BaseVariant) {
         jvmTarget = Version.jvmTarget
         setSource(files("src/main/kotlin"))
         config.setFrom(configs)
+        val report = layout.buildDirectory.get()
+            .dir("reports/analysis/documentation")
+            .dir("${variant.name}/html")
+            .file("index.html")
+            .asFile
         reports {
             html {
-                required.set(true)
-                outputLocation.set(buildDir.resolve("reports/analysis/documentation/${variant.name}/html/index.html"))
+                required = true
+                outputLocation = report
             }
-            md.required.set(false)
-            sarif.required.set(false)
-            txt.required.set(false)
-            xml.required.set(false)
+            md.required = false
+            sarif.required = false
+            txt.required = false
+            xml.required = false
         }
         val detektTask = tasks.getByName<io.gitlab.arturbosch.detekt.Detekt>(camelCase("detekt", variant.name))
         classpath.setFrom(detektTask.classpath)
+        doFirst {
+            println("Analysis report: ${report.absolutePath}")
+        }
     }
 }
 
 fun assembleDocumentation(variant: BaseVariant) {
     task<org.jetbrains.dokka.gradle.DokkaTask>(camelCase("assemble", variant.name, "Documentation")) {
-        outputDirectory.set(buildDir.resolve("documentation").resolve(variant.name))
-        moduleName.set(gh.name)
-        moduleVersion.set(variant.getVersion())
+        outputDirectory = layout.buildDirectory.dir("documentation/${variant.name}")
+        moduleName = gh.name
+        moduleVersion = variant.getVersion()
         dokkaSourceSets.create(camelCase(variant.name, "main")) {
-            reportUndocumented.set(false)
+            reportUndocumented = false
             sourceLink {
                 val path = "src/main/kotlin"
-                localDirectory.set(file(path))
-                val url = GitHub.url(gh.owner, gh.name)
-                remoteUrl.set(url.resolve("tree/${moduleVersion.get()}/lib/$path"))
+                localDirectory = file(path)
+                remoteUrl = gh.url().resolve("tree", moduleVersion.get(), "lib", path)
             }
             jdkVersion.set(Version.jvmTarget.toInt())
+        }
+        doLast {
+            val index = outputDirectory.get()
+                .file("index.html")
+                .existing()
+                .file()
+                .filled()
+            println("Documentation: ${index.absolutePath}")
         }
     }
 }
@@ -190,17 +233,18 @@ fun assembleDocumentation(variant: BaseVariant) {
 fun assemblePom(variant: BaseVariant) {
     task(camelCase("assemble", variant.name, "Pom")) {
         doLast {
-            buildDir.resolve("maven")
-                .resolve(variant.name)
-                .resolve(variant.getOutputFileName("pom"))
+            val file = layout.buildDirectory.get()
+                .dir("maven")
+                .dir(variant.name)
+                .file(variant.getOutputFileName("pom"))
                 .assemble(
                     Maven.pom(
-                        groupId = maven.group,
-                        artifactId = maven.id,
+                        artifact = maven,
                         version = variant.getVersion(),
                         packaging = "aar",
                     ),
                 )
+            println("POM: ${file.absolutePath}")
         }
     }
 }
@@ -208,9 +252,10 @@ fun assemblePom(variant: BaseVariant) {
 fun assembleMetadata(variant: BaseVariant) {
     task(camelCase("assemble", variant.name, "Metadata")) {
         doLast {
-            buildDir.resolve("yml")
-                .resolve(variant.name)
-                .resolve("metadata.yml")
+            val file = layout.buildDirectory.get()
+                .dir("yml")
+                .dir(variant.name)
+                .file("metadata.yml")
                 .assemble(
                     """
                         repository:
@@ -219,6 +264,7 @@ fun assembleMetadata(variant: BaseVariant) {
                         version: '${variant.getVersion()}'
                     """.trimIndent(),
                 )
+            println("Metadata: ${file.absolutePath}")
         }
     }
 }
@@ -226,16 +272,17 @@ fun assembleMetadata(variant: BaseVariant) {
 fun assembleMavenMetadata(variant: BaseVariant) {
     task(camelCase("assemble", variant.name, "MavenMetadata")) {
         doLast {
-            buildDir.resolve("maven")
-                .resolve(variant.name)
-                .resolve("maven-metadata.xml")
+            val file = layout.buildDirectory.get()
+                .dir("maven")
+                .dir(variant.name)
+                .file("maven-metadata.xml")
                 .assemble(
                     Maven.metadata(
-                        groupId = maven.group,
-                        artifactId = maven.id,
+                        artifact = maven,
                         version = variant.getVersion(),
                     ),
                 )
+            println("Maven metadata: ${file.absolutePath}")
         }
     }
 }
@@ -257,9 +304,14 @@ fun checkReadme(variant: BaseVariant) {
                 Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(variant.getVersion())),
                 "implementation(\"${colonCase(maven.group, maven.id, variant.getVersion())}\")",
             )
+            val report = layout.buildDirectory.get()
+                .dir("reports/analysis/readme")
+                .dir(variant.name)
+                .file("index.html")
+                .asFile
             rootDir.resolve("README.md").check(
                 expected = expected,
-                report = buildDir.resolve("reports/analysis/readme/${variant.name}/index.html"),
+                report = report,
             )
         }
     }
@@ -267,11 +319,15 @@ fun checkReadme(variant: BaseVariant) {
 
 fun assembleSource(variant: BaseVariant) {
     task<Jar>(camelCase("assemble", variant.name, "Source")) {
-        archiveBaseName.set(maven.id)
-        archiveVersion.set(variant.getVersion())
-        archiveClassifier.set("sources")
+        archiveBaseName = maven.id
+        archiveVersion = variant.getVersion()
+        archiveClassifier = "sources"
         val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
         from(sourceSets)
+        doLast {
+            val file = archiveFile.get().asFile
+            println("Archive: ${file.absolutePath}")
+        }
     }
 }
 
@@ -294,7 +350,6 @@ android {
 
     defaultConfig {
         minSdk = Version.Android.minSdk
-        manifestPlaceholders["appName"] = "@string/app_name"
     }
 
     buildTypes.getByName(testBuildType) {
@@ -325,11 +380,17 @@ android {
             tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
+            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
                 kotlinOptions {
                     jvmTarget = Version.jvmTarget
                     freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
                 }
+            }
+            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTestJavaWithJavac")) {
+                targetCompatibility = Version.jvmTarget
+            }
+            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "UnitTestKotlin")) {
+                kotlinOptions.jvmTarget = Version.jvmTarget
             }
         }
     }
@@ -337,7 +398,7 @@ android {
 
 dependencies {
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
-    testImplementation("org.robolectric:robolectric:4.10")
+    testImplementation("org.robolectric:robolectric:4.11")
     testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
     camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
 }
