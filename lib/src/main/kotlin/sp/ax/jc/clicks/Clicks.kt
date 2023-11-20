@@ -40,30 +40,20 @@ fun Modifier.clicks(
         factory = {
             val onClickState = rememberUpdatedState(onClick)
             val onLongClickState = rememberUpdatedState(onLongClick)
-            val lastPressState = remember { mutableStateOf<PressInteraction.Press?>(null) }
-            LaunchedEffect(lastPressState.value, enabled) {
-                val lastPress = lastPressState.value
-                if (lastPress != null && !enabled) {
-                    interactionSource.emit(PressInteraction.Cancel(lastPress))
-                    lastPressState.value = null
-                }
-            }
-            Modifier.indication(interactionSource = interactionSource, indication = indication)
+            val lastPressState = getLastPressState(
+                enabled = enabled,
+                interactionSource = interactionSource,
+            )
+            Modifier
+                .indication(interactionSource = interactionSource, indication = indication)
                 .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
-                            if (enabled) {
-                                val press = PressInteraction.Press(offset)
-                                lastPressState.value = press
-                                interactionSource.emit(press)
-                                @Suppress("IgnoredReturnValue")
-                                if (tryAwaitRelease()) {
-                                    interactionSource.emit(PressInteraction.Release(press))
-                                } else {
-                                    interactionSource.emit(PressInteraction.Cancel(press))
-                                }
-                                lastPressState.value = null
-                            }
+                            if (enabled) onPress(
+                                offset = offset,
+                                lastPressState = lastPressState,
+                                interactionSource = interactionSource,
+                            )
                         },
                         onLongPress = {
                             if (enabled) onLongClickState.value()
