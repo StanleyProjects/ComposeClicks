@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -17,7 +19,7 @@ import androidx.compose.ui.platform.debugInspectorInfo
  * Configure component to receive clicks via tap and press gestures.
  * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.clicks(
     enabled: Boolean = true,
@@ -38,16 +40,29 @@ fun Modifier.clicks(
         factory = {
             val onClickState = rememberUpdatedState(onClick)
             val onLongClickState = rememberUpdatedState(onLongClick)
+            val lastPressState = remember { mutableStateOf<PressInteraction.Press?>(null) }
+            LaunchedEffect(lastPressState.value, enabled) {
+                val lastPress = lastPressState.value
+                if (lastPress != null && !enabled) {
+                    interactionSource.emit(PressInteraction.Cancel(lastPress))
+                    lastPressState.value = null
+                }
+            }
             Modifier.indication(interactionSource = interactionSource, indication = indication)
                 .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
                             if (enabled) {
                                 val press = PressInteraction.Press(offset)
+                                lastPressState.value = press
                                 interactionSource.emit(press)
                                 @Suppress("IgnoredReturnValue")
-                                tryAwaitRelease()
-                                interactionSource.emit(PressInteraction.Release(press))
+                                if (tryAwaitRelease()) {
+                                    interactionSource.emit(PressInteraction.Release(press))
+                                } else {
+                                    interactionSource.emit(PressInteraction.Cancel(press))
+                                }
+                                lastPressState.value = null
                             }
                         },
                         onLongPress = {
@@ -65,7 +80,7 @@ fun Modifier.clicks(
 /**
  * Configure component to receive clicks via tap and press gestures with default [MutableInteractionSource] and [Indication].
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.clicks(
     enabled: Boolean = true,

@@ -271,9 +271,15 @@ internal class MainActivity : AppCompatActivity() {
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
-                                    .onClick(enabled = enabled) {
-                                        textState.value += char
-                                    }
+                                    .clicks(
+                                        enabled = enabled,
+                                        onClick = {
+                                            textState.value += char
+                                        },
+                                        onLongClick = {
+                                            textState.value += char.uppercase()
+                                        },
+                                    )
                                     .wrapContentSize(),
                                 text = char.toString(),
                                 style = TextStyle(
