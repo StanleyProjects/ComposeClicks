@@ -35,17 +35,19 @@ fun Modifier.onClick(
         },
         factory = {
             val onClickState = rememberUpdatedState(block)
+            val lastPressState = getLastPressState(
+                enabled = enabled,
+                interactionSource = interactionSource,
+            )
             Modifier.indication(interactionSource = interactionSource, indication = indication)
                 .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
-                            if (enabled) {
-                                val press = PressInteraction.Press(offset)
-                                interactionSource.emit(press)
-                                @Suppress("IgnoredReturnValue")
-                                tryAwaitRelease()
-                                interactionSource.emit(PressInteraction.Release(press))
-                            }
+                            if (enabled) onPress(
+                                offset = offset,
+                                lastPressState = lastPressState,
+                                interactionSource = interactionSource,
+                            )
                         },
                         onTap = {
                             if (enabled) onClickState.value()
