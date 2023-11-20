@@ -11,14 +11,12 @@ plugins {
     id("kotlin-android")
 }
 
-val appId = "sp.sample.clicks"
-
 android {
-    namespace = appId
+    namespace = "sp.sample.clicks"
     compileSdk = Version.Android.compileSdk
 
     defaultConfig {
-        applicationId = appId
+        applicationId = namespace
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
         versionName = "0.0.1"
