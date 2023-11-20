@@ -280,7 +280,13 @@ internal class MainActivity : AppCompatActivity() {
 //                                            textState.value += char.uppercase()
 //                                        },
 //                                    )
-                                    .onClick(
+//                                    .onClick(
+//                                        enabled = enabled,
+//                                        block = {
+//                                            textState.value += char
+//                                        },
+//                                    )
+                                    .onLongClick(
                                         enabled = enabled,
                                         block = {
                                             textState.value += char

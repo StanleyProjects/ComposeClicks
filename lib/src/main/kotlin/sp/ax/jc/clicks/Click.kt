@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.debugInspectorInfo
  * Configure component to receive clicks via tap gestures.
  * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.onClick(
     enabled: Boolean = true,
@@ -61,7 +61,7 @@ fun Modifier.onClick(
 /**
  * Configure component to receive clicks via tap gestures with default [MutableInteractionSource] and [Indication].
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.onClick(
     enabled: Boolean = true,

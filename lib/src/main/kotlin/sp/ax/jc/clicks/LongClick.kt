@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.debugInspectorInfo
  * Configure component to receive clicks via press gestures.
  * @see [Modifier.indication]
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.onLongClick(
     enabled: Boolean = true,
@@ -34,21 +34,23 @@ fun Modifier.onLongClick(
             properties["interactionSource"] = interactionSource
         },
         factory = {
-            val onClickState = rememberUpdatedState(block)
+            val onLongClickState = rememberUpdatedState(block)
+            val lastPressState = getLastPressState(
+                enabled = enabled,
+                interactionSource = interactionSource,
+            )
             Modifier.indication(interactionSource = interactionSource, indication = indication)
                 .pointerInput(interactionSource, enabled) {
                     detectTapGestures(
                         onPress = { offset ->
-                            if (enabled) {
-                                val press = PressInteraction.Press(offset)
-                                interactionSource.emit(press)
-                                @Suppress("IgnoredReturnValue")
-                                tryAwaitRelease()
-                                interactionSource.emit(PressInteraction.Release(press))
-                            }
+                            if (enabled) onPress(
+                                offset = offset,
+                                lastPressState = lastPressState,
+                                interactionSource = interactionSource,
+                            )
                         },
                         onLongPress = {
-                            if (enabled) onClickState.value()
+                            if (enabled) onLongClickState.value()
                         },
                     )
                 }
@@ -59,7 +61,7 @@ fun Modifier.onLongClick(
 /**
  * Configure component to receive clicks via press gestures with default [MutableInteractionSource] and [Indication].
  * @author [Stanley Wintergreen](https://github.com/kepocnhh)
- * @since 0.2.2
+ * @since 0.2.3
  */
 fun Modifier.onLongClick(
     enabled: Boolean = true,
