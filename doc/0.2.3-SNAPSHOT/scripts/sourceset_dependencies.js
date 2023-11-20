@@ -1,0 +1,1 @@
+sourceset_dependencies='{":lib:assembleDebugDocumentation/debug":[],":lib:assembleDebugDocumentation/debugMain":[],":lib:assembleDebugDocumentation/main":[],":lib:assembleDebugDocumentation/release":[]}'
