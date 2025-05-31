@@ -1,7 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import sp.gx.core.buildDir
 import sp.gx.core.camelCase
+import sp.gx.core.create
 import sp.gx.core.getByName
-import sp.gx.core.kebabCase
+import sp.gx.core.map
+import sp.gx.core.qn
+import sp.gx.core.string
+import sp.gx.core.xml
 
 repositories {
     google()
@@ -23,9 +28,8 @@ android {
         applicationId = namespace
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = "0.0.1"
         versionCode = 1
-        manifestPlaceholders["appName"] = "@string/app_name"
+        versionName = "0.0.$versionCode"
     }
 
     buildTypes {
@@ -34,7 +38,6 @@ android {
             versionNameSuffix = "-$name"
             isMinifyEnabled = false
             isShrinkResources = false
-            manifestPlaceholders["buildType"] = name
         }
     }
 
@@ -46,20 +49,40 @@ android {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    android.defaultConfig.versionName
-    val outputFileName = kebabCase(
-        camelCase(rootProject.name, "Sample"),
+    output.outputFileName = listOf(
+        rootProject.name,
+        "sample",
         android.defaultConfig.versionName!!,
         variant.name,
         android.defaultConfig.versionCode!!.toString(),
-    )
-    output.outputFileName.set("$outputFileName.apk")
+    ).joinToString(separator = "-", postfix = ".apk")
     afterEvaluate {
         tasks.getByName<JavaCompile>("compile", variant.name, "JavaWithJavac") {
             targetCompatibility = Version.jvmTarget
         }
         tasks.getByName<KotlinCompile>("compile", variant.name, "Kotlin") {
             kotlinOptions.jvmTarget = Version.jvmTarget
+        }
+        val checkManifestTask = tasks.create("checkManifest", variant.name) {
+            dependsOn(camelCase("compile", variant.name, "Sources"))
+            doLast {
+                val actual = buildDir()
+                    .dir("intermediates/merged_manifests/${variant.name}")
+                    .dir(camelCase("process", variant.name, "Manifest"))
+                    .xml("AndroidManifest.xml")
+                    .map("uses-permission".qn()) {
+                        it.string("{http://schemas.android.com/apk/res/android}name".qn())
+                    }
+                val expected = setOf(
+                    "${variant.applicationId.get()}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+                )
+                check(actual.sorted() == expected.sorted()) {
+                    "Actual is:\n$actual\nbut expected is:\n$expected"
+                }
+            }
+        }
+        tasks.getByName(camelCase("assemble", variant.name)) {
+            dependsOn(checkManifestTask)
         }
     }
 }
