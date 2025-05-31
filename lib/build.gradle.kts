@@ -34,11 +34,13 @@ val gh = GitHub.Repository(
 repositories {
     google()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    id("org.jetbrains.compose") version Version.compose
     id("org.gradle.jacoco")
     id("io.gitlab.arturbosch.detekt") version Version.detekt
     id("org.jetbrains.dokka") version Version.dokka
@@ -371,7 +373,7 @@ android {
 
     buildFeatures.compose = true
 
-    composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
+    composeOptions.kotlinCompilerExtensionVersion = "1.5.15"
 
     fun onVariant(variant: LibraryVariant) {
         val supported = setOf(
@@ -423,8 +425,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+    implementation(compose.foundation)
     testImplementation("org.robolectric:robolectric:4.11")
-    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
-    camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
+    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.compose}")
+    camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.compose}")
 }
