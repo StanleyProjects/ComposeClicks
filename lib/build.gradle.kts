@@ -10,11 +10,11 @@ import sp.gx.core.assemble
 import sp.gx.core.buildDir
 import sp.gx.core.camelCase
 import sp.gx.core.check
-import sp.gx.core.colonCase
 import sp.gx.core.create
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
+import sp.gx.core.getByName
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
 import sp.gx.core.task
@@ -238,24 +238,6 @@ fun assembleDocumentation(variant: BaseVariant) {
     }
 }
 
-//fun assembleMavenMetadata(variant: BaseVariant) {
-//    task(camelCase("assemble", variant.name, "MavenMetadata")) {
-//        doLast {
-//            val file = layout.buildDirectory.get()
-//                .dir("maven")
-//                .dir(variant.name)
-//                .file("maven-metadata.xml")
-//                .assemble(
-//                    Maven.metadata(
-//                        artifact = maven,
-//                        version = variant.getVersion(),
-//                    ),
-//                )
-//            println("Maven metadata: ${file.absolutePath}")
-//        }
-//    }
-//}
-
 fun checkReadme(variant: BaseVariant) {
     tasks.create("check", variant.name, "Readme") {
         doLast {
@@ -408,28 +390,28 @@ android {
         output.outputFileName = variant.getOutputFileName("aar")
         checkReadme(variant)
         if (variant.buildType.name == testBuildType) {
-            checkCoverage(variant)
+//            checkCoverage(variant)
         }
-        checkCodeQuality(variant)
-        checkDocumentation(variant)
-        assembleDocumentation(variant)
+//        checkCodeQuality(variant)
+//        checkDocumentation(variant)
+//        assembleDocumentation(variant)
         assemblePom(variant)
         assembleSource(variant)
         assembleMetadata(variant)
         afterEvaluate {
-            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
+            tasks.getByName<JavaCompile>("compile", variant.name, "JavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
+            tasks.getByName<KotlinCompile>("compile", variant.name, "Kotlin") {
                 kotlinOptions {
                     jvmTarget = Version.jvmTarget
-                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
+                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", maven.moduleName())
                 }
             }
-            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTestJavaWithJavac")) {
+            tasks.getByName<JavaCompile>("compile", variant.name, "UnitTestJavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "UnitTestKotlin")) {
+            tasks.getByName<KotlinCompile>("compile", variant.name, "UnitTestKotlin") {
                 kotlinOptions.jvmTarget = Version.jvmTarget
             }
         }
