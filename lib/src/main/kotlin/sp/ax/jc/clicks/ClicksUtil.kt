@@ -26,7 +26,6 @@ internal fun getLastPressState(
     return lastPressState
 }
 
-
 internal suspend fun PressGestureScope.onPress(
     offset: Offset,
     lastPressState: MutableState<PressInteraction.Press?>,

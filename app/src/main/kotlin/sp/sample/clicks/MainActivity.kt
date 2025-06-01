@@ -1,8 +1,8 @@
 package sp.sample.clicks
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -57,9 +57,9 @@ private fun Buttons(
     }
 }
 
-internal class MainActivity : AppCompatActivity() {
-    override fun onCreate(inState: Bundle?) {
-        super.onCreate(inState)
+internal class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setContent {
             Column(
                 modifier = Modifier
@@ -99,6 +99,7 @@ internal class MainActivity : AppCompatActivity() {
                                     .weight(1f)
                                     .onClick(enabled = true) {
                                         context.showToast("on click: $index] $it")
+                                        println("[MainActivity]:on click: $index] $it")
                                     }
                                     .wrapContentHeight(),
                                 text = "click",
@@ -111,6 +112,7 @@ internal class MainActivity : AppCompatActivity() {
                                     .weight(1f)
                                     .onLongClick {
                                         context.showToast("on long click: $index] $it")
+                                        println("[MainActivity]:on long click: $index] $it")
                                     }
                                     .wrapContentHeight(),
                                 text = "long click",
@@ -124,9 +126,11 @@ internal class MainActivity : AppCompatActivity() {
                                     .clicks(
                                         onClick = {
                                             context.showToast("on click: $index] $it")
+                                            println("[MainActivity]:on click: $index] $it")
                                         },
                                         onLongClick = {
                                             context.showToast("on long click: $index] $it")
+                                            println("[MainActivity]:on long click: $index] $it")
                                         }
                                     )
                                     .wrapContentHeight(),
@@ -182,6 +186,7 @@ internal class MainActivity : AppCompatActivity() {
                         "click" to {
                             onClick(enabled = true) {
                                 context.showToast("on enabled click...")
+                                println("[MainActivity]:on enabled click...")
                             }
                         },
                         "click disabled" to {
@@ -199,6 +204,7 @@ internal class MainActivity : AppCompatActivity() {
                         "long click" to {
                             onLongClick(enabled = true) {
                                 context.showToast("on enabled long click...")
+                                println("[MainActivity]:on enabled long click...")
                             }
                         },
                         "long click disabled" to {
@@ -218,9 +224,11 @@ internal class MainActivity : AppCompatActivity() {
                                 enabled = true,
                                 onClick = {
                                     context.showToast("on enabled clicks click...")
+                                    println("[MainActivity]:on enabled clicks click...")
                                 },
                                 onLongClick = {
                                     context.showToast("on enabled clicks long click...")
+                                    println("[MainActivity]:on enabled clicks long click...")
                                 },
                             )
                         },

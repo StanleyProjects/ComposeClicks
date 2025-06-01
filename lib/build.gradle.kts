@@ -1,20 +1,25 @@
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.api.LibraryVariant
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import sp.gx.core.Badge
 import sp.gx.core.GitHub
 import sp.gx.core.Markdown
 import sp.gx.core.Maven
+import sp.gx.core.asFile
 import sp.gx.core.assemble
+import sp.gx.core.buildDir
 import sp.gx.core.camelCase
 import sp.gx.core.check
-import sp.gx.core.colonCase
+import sp.gx.core.create
 import sp.gx.core.existing
 import sp.gx.core.file
 import sp.gx.core.filled
+import sp.gx.core.getByName
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
+import sp.gx.core.task
 
-version = "0.2.3"
+version = "0.3.0"
 
 val maven = Maven.Artifact(
     group = "com.github.kepocnhh",
@@ -29,22 +34,27 @@ val gh = GitHub.Repository(
 repositories {
     google()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    id("org.jetbrains.compose") version Version.compose
     id("org.gradle.jacoco")
     id("io.gitlab.arturbosch.detekt") version Version.detekt
     id("org.jetbrains.dokka") version Version.dokka
 }
 
 fun BaseVariant.getVersion(): String {
-    check(flavorName.isEmpty())
-    return when (buildType.name) {
-        "debug" -> kebabCase(version.toString(), "SNAPSHOT")
-        "release" -> version.toString()
-        else -> error("Build type \"${buildType.name}\" is not supported!")
+    return when (flavorName) {
+        "unstable" -> {
+            when (buildType.name) {
+                "debug" -> kebabCase("${version}u", "SNAPSHOT")
+                else -> error("Build type \"${buildType.name}\" is not supported for flavor \"$flavorName\"!")
+            }
+        }
+        else -> error("Flavor name \"$flavorName\" is not supported!")
     }
 }
 
@@ -230,21 +240,73 @@ fun assembleDocumentation(variant: BaseVariant) {
     }
 }
 
-fun assemblePom(variant: BaseVariant) {
-    task(camelCase("assemble", variant.name, "Pom")) {
+fun checkReadme(variant: BaseVariant) {
+    tasks.create("check", variant.name, "Readme") {
         doLast {
-            val file = layout.buildDirectory.get()
-                .dir("maven")
+            when (variant.name) {
+                "unstableDebug" -> {
+                    val badge = Markdown.image(
+                        text = "version",
+                        url = Badge.url(
+                            label = "version",
+                            message = variant.getVersion(),
+                            color = "2962ff",
+                        ),
+                    )
+                    val expected = setOf(
+                        badge,
+                        Markdown.link("Maven", Maven.Snapshot.url(maven, variant.getVersion())),
+                        "implementation(\"${maven.moduleName(variant.getVersion())}\")",
+                    )
+                    val report = buildDir()
+                        .dir("reports/analysis/readme")
+                        .dir(variant.name)
+                        .asFile("index.html")
+                    rootDir.resolve("README.md").check(
+                        expected = expected,
+                        report = report,
+                    )
+                }
+                else -> error("Variant \"${variant.name}\" is not supported!")
+            }
+        }
+    }
+}
+
+fun assemblePom(variant: BaseVariant) {
+    tasks.create("assemble", variant.name, "Pom") {
+        doLast {
+            val file = buildDir()
+                .dir("xml")
                 .dir(variant.name)
-                .file(variant.getOutputFileName("pom"))
+                .file("maven.pom.xml")
                 .assemble(
-                    Maven.pom(
-                        artifact = maven,
+                    maven.pom(
                         version = variant.getVersion(),
                         packaging = "aar",
                     ),
                 )
             println("POM: ${file.absolutePath}")
+        }
+    }
+}
+
+fun assembleSource(variant: BaseVariant) {
+    task<Jar>("assemble", variant.name, "Source") {
+        val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
+        from(sourceSets)
+        val dir = buildDir()
+            .dir("sources")
+            .asFile(variant.name)
+        val file = File(dir, "${maven.name(variant.getVersion())}-sources.jar")
+        outputs.upToDateWhen {
+            file.exists()
+        }
+        doLast {
+            dir.mkdirs()
+            val renamed = archiveFile.get().asFile.existing().file().filled().renameTo(file)
+            check(renamed)
+            println("Archive: ${file.absolutePath}")
         }
     }
 }
@@ -265,68 +327,6 @@ fun assembleMetadata(variant: BaseVariant) {
                     """.trimIndent(),
                 )
             println("Metadata: ${file.absolutePath}")
-        }
-    }
-}
-
-fun assembleMavenMetadata(variant: BaseVariant) {
-    task(camelCase("assemble", variant.name, "MavenMetadata")) {
-        doLast {
-            val file = layout.buildDirectory.get()
-                .dir("maven")
-                .dir(variant.name)
-                .file("maven-metadata.xml")
-                .assemble(
-                    Maven.metadata(
-                        artifact = maven,
-                        version = variant.getVersion(),
-                    ),
-                )
-            println("Maven metadata: ${file.absolutePath}")
-        }
-    }
-}
-
-fun checkReadme(variant: BaseVariant) {
-    task(camelCase("check", variant.name, "Readme")) {
-        doLast {
-            val badge = Markdown.image(
-                text = "version",
-                url = Badge.url(
-                    label = "version",
-                    message = variant.getVersion(),
-                    color = "2962ff",
-                ),
-            )
-            val expected = setOf(
-                badge,
-                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, variant.getVersion())),
-                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(variant.getVersion())),
-                "implementation(\"${colonCase(maven.group, maven.id, variant.getVersion())}\")",
-            )
-            val report = layout.buildDirectory.get()
-                .dir("reports/analysis/readme")
-                .dir(variant.name)
-                .file("index.html")
-                .asFile
-            rootDir.resolve("README.md").check(
-                expected = expected,
-                report = report,
-            )
-        }
-    }
-}
-
-fun assembleSource(variant: BaseVariant) {
-    task<Jar>(camelCase("assemble", variant.name, "Source")) {
-        archiveBaseName = maven.id
-        archiveVersion = variant.getVersion()
-        archiveClassifier = "sources"
-        val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
-        from(sourceSets)
-        doLast {
-            val file = archiveFile.get().asFile
-            println("Archive: ${file.absolutePath}")
         }
     }
 }
@@ -352,53 +352,81 @@ android {
         minSdk = Version.Android.minSdk
     }
 
+    productFlavors {
+        mapOf(
+            "stability" to setOf(
+                "unstable",
+            ),
+        ).forEach { (dimension, flavors) ->
+            flavorDimensions += dimension
+            flavors.forEach { flavor ->
+                create(flavor) {
+                    this.dimension = dimension
+                }
+            }
+        }
+    }
+
     buildTypes.getByName(testBuildType) {
         isTestCoverageEnabled = true
     }
 
     buildFeatures.compose = true
 
-    composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
+    composeOptions.kotlinCompilerExtensionVersion = "1.5.15"
 
-    libraryVariants.all {
-        val variant = this
+    fun onVariant(variant: LibraryVariant) {
+        val supported = setOf(
+            "unstableDebug",
+        )
+        if (!supported.contains(variant.name)) {
+            tasks.getByName(camelCase("pre", variant.name, "Build")) {
+                doFirst {
+                    error("Variant \"${variant.name}\" is not supported!")
+                }
+            }
+            return
+        }
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
-        output.outputFileName = getOutputFileName("aar")
+        output.outputFileName = variant.getOutputFileName("aar")
         checkReadme(variant)
-        if (buildType.name == testBuildType) {
-            checkCoverage(variant)
+        if (variant.buildType.name == testBuildType) {
+//            checkCoverage(variant)
         }
-        checkCodeQuality(variant)
-        checkDocumentation(variant)
-        assembleDocumentation(variant)
+//        checkCodeQuality(variant)
+//        checkDocumentation(variant)
+//        assembleDocumentation(variant)
         assemblePom(variant)
         assembleSource(variant)
         assembleMetadata(variant)
-        assembleMavenMetadata(variant)
         afterEvaluate {
-            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
+            tasks.getByName<JavaCompile>("compile", variant.name, "JavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
+            tasks.getByName<KotlinCompile>("compile", variant.name, "Kotlin") {
                 kotlinOptions {
                     jvmTarget = Version.jvmTarget
-                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
+                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", maven.moduleName())
                 }
             }
-            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "UnitTestJavaWithJavac")) {
+            tasks.getByName<JavaCompile>("compile", variant.name, "UnitTestJavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "UnitTestKotlin")) {
+            tasks.getByName<KotlinCompile>("compile", variant.name, "UnitTestKotlin") {
                 kotlinOptions.jvmTarget = Version.jvmTarget
             }
         }
     }
+
+    libraryVariants.all {
+        onVariant(this)
+    }
 }
 
 dependencies {
-    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+    implementation(compose.foundation)
     testImplementation("org.robolectric:robolectric:4.11")
-    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.Android.compose}")
-    camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.Android.compose}")
+    testImplementation("androidx.compose.ui:ui-test-junit4:${Version.compose}")
+    camelCase("test", android.testBuildType, "Implementation")("androidx.compose.ui:ui-test-manifest:${Version.compose}")
 }

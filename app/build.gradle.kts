@@ -1,14 +1,23 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import sp.gx.core.buildDir
 import sp.gx.core.camelCase
-import sp.gx.core.kebabCase
+import sp.gx.core.create
+import sp.gx.core.getByName
+import sp.gx.core.map
+import sp.gx.core.qn
+import sp.gx.core.string
+import sp.gx.core.xml
 
 repositories {
     google()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.compose") version Version.compose
 }
 
 android {
@@ -19,9 +28,8 @@ android {
         applicationId = namespace
         minSdk = Version.Android.minSdk
         targetSdk = Version.Android.targetSdk
-        versionName = "0.0.1"
         versionCode = 1
-        manifestPlaceholders["appName"] = "@string/app_name"
+        versionName = "0.0.$versionCode"
     }
 
     buildTypes {
@@ -30,39 +38,57 @@ android {
             versionNameSuffix = "-$name"
             isMinifyEnabled = false
             isShrinkResources = false
-            manifestPlaceholders["buildType"] = name
         }
     }
 
     buildFeatures.compose = true
 
-    composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
+    composeOptions.kotlinCompilerExtensionVersion = "1.5.15"
 }
 
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    android.defaultConfig.versionName
-    val outputFileName = kebabCase(
-        camelCase(rootProject.name, "Sample"),
+    output.outputFileName = listOf(
+        rootProject.name,
+        "sample",
         android.defaultConfig.versionName!!,
         variant.name,
         android.defaultConfig.versionCode!!.toString(),
-    )
-    output.outputFileName.set("$outputFileName.apk")
+    ).joinToString(separator = "-", postfix = ".apk")
     afterEvaluate {
-        tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
+        tasks.getByName<JavaCompile>("compile", variant.name, "JavaWithJavac") {
             targetCompatibility = Version.jvmTarget
         }
-        tasks.getByName<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
+        tasks.getByName<KotlinCompile>("compile", variant.name, "Kotlin") {
             kotlinOptions.jvmTarget = Version.jvmTarget
+        }
+        val checkManifestTask = tasks.create("checkManifest", variant.name) {
+            dependsOn(camelCase("compile", variant.name, "Sources"))
+            doLast {
+                val actual = buildDir()
+                    .dir("intermediates/merged_manifests/${variant.name}")
+                    .dir(camelCase("process", variant.name, "Manifest"))
+                    .xml("AndroidManifest.xml")
+                    .map("uses-permission".qn()) {
+                        it.string("{http://schemas.android.com/apk/res/android}name".qn())
+                    }
+                val expected = setOf(
+                    "${variant.applicationId.get()}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+                )
+                check(actual.sorted() == expected.sorted()) {
+                    "Actual is:\n$actual\nbut expected is:\n$expected"
+                }
+            }
+        }
+        tasks.getByName(camelCase("assemble", variant.name)) {
+            dependsOn(checkManifestTask)
         }
     }
 }
 
 dependencies {
     implementation(project(":lib"))
-    implementation("androidx.activity:activity-compose:1.6.1")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation(compose.foundation)
 }
